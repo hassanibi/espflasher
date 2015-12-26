@@ -71,6 +71,7 @@ void MakeImageDialog::makeImage()
                 image.addSegment(m_filesFields.at(i)->offset(), file.readAll());
                 file.close();
             }
+            m_filesFields.at(i)->setProgress(100);
         }
     }
 

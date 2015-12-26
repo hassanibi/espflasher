@@ -12,12 +12,12 @@ ELFFile::ELFFile(const QString &name, QObject *parent): QObject(parent),
 {
 }
 
-void ELFFile::fetchSymbols()
+bool ELFFile::fetchSymbols()
 {
     if(!m_symbols.isEmpty())
-        return;
+        return false;
 
-    QString toolNM = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-nm";
+    QString toolNM = "xtensa-lx106-elf-nm";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolNM = "xt-nm";
 
@@ -25,20 +25,21 @@ void ELFFile::fetchSymbols()
     nm->start(toolNM, QStringList() << m_name);
 
     if (!nm->waitForStarted() || !nm->waitForFinished()){
-        //Error calling %s, do you have Xtensa toolchain in PATH?
-        return;
+        return false;
     }
 
     nm->setReadChannel(QProcess::StandardOutput);
-    while (nm->canReadLine()) {
+    while (nm->canReadLine())
+    {
         QByteArray line = nm->readLine().replace("\n", "").simplified();
         QList<QByteArray> fields = line.split(' ');
         if(fields.at(0) == "U"){
-            //Warning: ELF binary has undefined symbol %s
             continue;
         }
         m_symbols.insert(fields.at(2), fields.at(0).toInt(0, 16));
     }
+
+    return true;
 }
 
 int ELFFile::getSymbolAddr(const QString &symbole)
@@ -50,7 +51,7 @@ int ELFFile::getSymbolAddr(const QString &symbole)
 
 int ELFFile::getEntryPoint()
 {
-    QString toolReadELF = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-readelf";
+    QString toolReadELF = "xtensa-lx106-elf-readelf";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolReadELF = "xt-readelf";
 
@@ -58,34 +59,35 @@ int ELFFile::getEntryPoint()
     readELF->start(toolReadELF, QStringList() << "-h" << m_name);
 
     if (!readELF->waitForStarted() || !readELF->waitForFinished()){
-        //Error calling %s, do you have Xtensa toolchain in PATH?
         return -1;
     }
 
     readELF->setReadChannel(QProcess::StandardOutput);
-    while (readELF->canReadLine()) {
+    while (readELF->canReadLine())
+    {
         QByteArray line = readELF->readLine().replace("\n", "").simplified();
         QList<QByteArray> fields = line.split(' ');
         if(fields.at(0) == "Entry"){
             return fields.at(3).toInt(0, 16);
         }
     }
+
+    return true;
 }
 
 QByteArray ELFFile::loadSection(const QString  &section)
 {
-    QString toolObjcopy = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy";
+    QString toolObjcopy = "xtensa-lx106-elf-objcopy";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolObjcopy = "xt-objcopy";
 
     QTemporaryFile tmpsection("XXXXXX.section");
-    if (tmpsection.open()) {
-
+    if (tmpsection.open())
+    {
         QProcess *objcopy = new QProcess(this);
         objcopy->start(toolObjcopy, QStringList() << "--only-section" << section << "-Obinary" << m_name << tmpsection.fileName() );
 
         if (!objcopy->waitForStarted() || !objcopy->waitForFinished()){
-            //Error calling %s, do you have Xtensa toolchain in PATH?
             return QByteArray();
         }
 
@@ -94,6 +96,7 @@ QByteArray ELFFile::loadSection(const QString  &section)
         return data;
     }
 
+    return QByteArray();
 }
 
 } //namespace ESPFlasher

@@ -386,7 +386,7 @@ void MainWindow::dumpMemory()
             ESPFlasher::quint32toBytes(m_esp->readReg(address + (i * 4)), &bytes[0]);
             file.write(bytes, 4);
             if(file.pos() % 1024 == 0){
-                ui->logList->addEntry(QString::asprintf("%d bytes read... (%d %%)", file.pos(), file.pos() * 100 / size), LogList::Info, k++);
+                ui->logList->addEntry(QString::asprintf("%lld bytes read... (%lld %%)", file.pos(), file.pos() * 100 / size), LogList::Info, k++);
             }
         }
         file.close();

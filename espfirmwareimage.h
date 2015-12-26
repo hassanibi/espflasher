@@ -29,7 +29,7 @@ public:
     };
 
     void addSegment(quint32 addr, QByteArray data);
-    void save(const QString &filename);
+    bool save(const QString &filename);
 
     void setEntryPoint(int entryPoint) { m_entryPoint = entryPoint; }
 

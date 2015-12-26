@@ -50,7 +50,13 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>38</height>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>40</height>
                  </size>
                 </property>
                </widget>
@@ -60,7 +66,13 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>38</height>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>40</height>
                  </size>
                 </property>
                </widget>
@@ -101,7 +113,20 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QComboBox" name="spiMode"/>
+             <widget class="QComboBox" name="spiMode">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_6">
@@ -111,7 +136,20 @@
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QComboBox" name="flashSize"/>
+             <widget class="QComboBox" name="flashSize">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item row="3" column="0">
              <widget class="QLabel" name="label_4">
@@ -121,7 +159,20 @@
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QComboBox" name="spiSpeed"/>
+             <widget class="QComboBox" name="spiSpeed">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

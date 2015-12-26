@@ -33,6 +33,7 @@ void ImageChooser::filenameChnaged(const QString &filename)
 {
     QFileInfo file(filename);
     ui->infoBtn->setEnabled(file.isFile() && file .exists());
+    setProgress(0);
 }
 
 void ImageChooser::setFile()

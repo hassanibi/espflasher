@@ -372,7 +372,7 @@ QByteArray ESPRom::flashRead(quint32 offset, quint32 size, quint32 count)
     memFinish(0x4010001c);
 
     QByteArray data;
-    for(int i = 0; i < count; i++){
+    for(int i = 0; i < (int)count; i++){
         if(read(1) != QByteArray("\xc0", 1)){
             return QByteArray();
         }

@@ -21,7 +21,7 @@ public:
     QByteArray loadSection(const QString &section);
 
 private:
-    void fetchSymbols();
+    bool fetchSymbols();
 
 private:
     QString m_name;

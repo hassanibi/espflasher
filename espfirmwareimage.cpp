@@ -8,12 +8,15 @@
 namespace ESPFlasher {
 
 ESPFirmwareImage::ESPFirmwareImage(const QString &filename):
-    m_error(NoError),
+    m_entryPoint(0),
     m_flashMode(0),
     m_flashSizeFreq(0),
-    m_entryPoint(0),
-    m_checksum(0)
+    m_checksum(0),
+    m_error(NoError)
 {
+
+    if(filename.isEmpty())
+        return;
 
     QFile file(filename);
     if(!file.open(QIODevice::ReadOnly)){
@@ -49,7 +52,7 @@ ESPFirmwareImage::ESPFirmwareImage(const QString &filename):
         }
         int len;
         char data[size];
-        if((len = (quint32)dataStream.readRawData(data, size)) < size){
+        if((len = dataStream.readRawData(data, size)) < (int)size){
             m_error = BadEndOfFile;
             m_errorText = QString::asprintf("End of file reading segment 0x%x, length %d (actual length %d)", offset, size, len);
             return;
@@ -88,35 +91,33 @@ void ESPFirmwareImage::addSegment(quint32 addr, QByteArray data)
 
 }
 
-void ESPFirmwareImage::save(const QString &filename)
+bool ESPFirmwareImage::save(const QString &filename)
 {
     QFile file(filename);
-    if(file.open(QIODevice::WriteOnly)){
-        QDataStream dataStream(&file);
-        dataStream.setByteOrder(QDataStream::LittleEndian);
-
-        int writeCount = 0;
-
-        dataStream << (quint8)ESP_IMAGE_MAGIC << (quint8)m_segments.size() <<  m_flashMode << m_flashSizeFreq << m_entryPoint;
-        writeCount += 8;
-
-        quint8 checksum = (quint8)ESP_CHECKSUM_MAGIC;
-
-        for(int i = 0; i < m_segments.size(); i++){
-            dataStream << m_segments.at(i).offset << m_segments.at(i).size;
-            writeCount += 8;
-            writeCount += dataStream.writeRawData(m_segments.at(i).data.data(), m_segments.at(i).data.size());
-            checksum = Tools::checksum(m_segments.at(i).data, checksum);
-        }
-
-        for(int i = 0; i < 15 - (writeCount % 16); i++){
-            dataStream.writeRawData("\x00", 1);
-        }
-
-        dataStream << checksum;
-
-        file.close();
+    if(!file.open(QIODevice::WriteOnly)){
+        return false;
     }
+
+    int writeCount = 0;
+    QDataStream dataStream(&file);
+    dataStream.setByteOrder(QDataStream::LittleEndian);
+    dataStream << (quint8)ESP_IMAGE_MAGIC << (quint8)m_segments.size() <<  m_flashMode << m_flashSizeFreq << m_entryPoint;
+    writeCount += 8;
+
+    quint8 checksum = (quint8)ESP_CHECKSUM_MAGIC;
+    for(int i = 0; i < m_segments.size(); i++){
+        dataStream << m_segments.at(i).offset << m_segments.at(i).size;
+        writeCount += 8;
+        writeCount += dataStream.writeRawData(m_segments.at(i).data.data(), m_segments.at(i).data.size());
+        checksum = Tools::checksum(m_segments.at(i).data, checksum);
+    }
+    for(int i = 0; i < 15 - (writeCount % 16); i++){
+        dataStream.writeRawData("\x00", 1);
+    }
+
+    dataStream << checksum;
+    file.close();
+    return true;
 }
 
 } //namespace ESPFlasher
