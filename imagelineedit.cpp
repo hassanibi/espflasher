@@ -41,7 +41,7 @@ ImageLineEdit::ImageLineEdit (QWidget * parent):
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
-  setPlaceholderText (tr ("<Binary image>"));
+  setPlaceholderText (tr ("<binary file>"));
 #endif
 }
 

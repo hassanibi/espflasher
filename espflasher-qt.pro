@@ -54,9 +54,6 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resource.qrc
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../opt/Qt/5.5/gcc_64/lib/release/ -lpoppler-qt5
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../opt/Qt/5.5/gcc_64/lib/debug/ -lpoppler-qt5
-else:unix: LIBS += -L$$PWD/../../../../opt/Qt/5.5/gcc_64/lib/ -lpoppler-qt5
+win32: LIBS += -llibpoppler-qt5.dll
+else:unix: LIBS += -lpoppler-qt5
 
-INCLUDEPATH += $$PWD/../../../../opt/Qt/5.5/gcc_64/include
-DEPENDPATH += $$PWD/../../../../opt/Qt/5.5/gcc_64/include

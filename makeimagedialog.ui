@@ -118,6 +118,12 @@
             <height>40</height>
            </size>
           </property>
+          <property name="inputMask">
+           <string>\0\xhhhhhhhh</string>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
         </item>
         <item row="1" column="1">

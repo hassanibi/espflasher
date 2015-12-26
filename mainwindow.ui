@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>808</width>
-    <height>574</height>
+    <height>607</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -397,13 +397,13 @@
          <item row="0" column="1">
           <widget class="QPushButton" name="writeMemoryBtn">
            <property name="toolTip">
-            <string>Read-modify-write to arbitrary memory location</string>
+            <string>Write to arbitrary memory location</string>
            </property>
            <property name="statusTip">
-            <string>Read-modify-write to arbitrary memory location</string>
+            <string>Write to arbitrary memory location</string>
            </property>
            <property name="whatsThis">
-            <string>Read-modify-write to arbitrary memory location</string>
+            <string>Write to arbitrary memory location</string>
            </property>
            <property name="styleSheet">
             <string notr="true">text-align:left;</string>
@@ -554,7 +554,7 @@
             <string notr="true">text-align:left;</string>
            </property>
            <property name="text">
-            <string>Make Image</string>
+            <string>Make Image...</string>
            </property>
            <property name="icon">
             <iconset resource="resource.qrc">
@@ -572,6 +572,11 @@
        </item>
        <item>
         <widget class="LogList" name="logList">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -644,14 +649,6 @@
    <addaction name="menu_File"/>
    <addaction name="menuImport_Export"/>
    <addaction name="menu"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport_image_file_list">

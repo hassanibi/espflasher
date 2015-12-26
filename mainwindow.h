@@ -62,6 +62,7 @@ private slots:
     void readMemory();
     void writeMemory();
     void makeImage();
+    void runImage();
 
     void printMAC();
     void copyMAC();

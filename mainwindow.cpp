@@ -55,11 +55,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
 
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 4; i++){
         addFileField();
     }
 
     enableActions();
+
+    ui->logList->addEntry(QLatin1String("Ready."));
 }
 
 MainWindow::~MainWindow()
@@ -432,6 +434,15 @@ void MainWindow::writeMemory()
 void MainWindow::makeImage()
 {
     ESPFlasher::Tools::openDialog (m_makeImageDialog, this);
+}
+
+void MainWindow::runImage()
+{
+    if(!m_esp->isOpen()){
+        return;
+    }
+
+    m_esp->run();
 }
 
 void MainWindow::importImageList()

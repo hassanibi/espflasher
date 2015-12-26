@@ -167,7 +167,6 @@ bool ESPRom::sync()
 
 bool ESPRom::open()
 {
-
     if(serialPort->isOpen())
         return true;
 
@@ -321,7 +320,6 @@ void ESPRom::run(bool reboot)
 
 QByteArray ESPRom::readMAC()
 {
-    qInfo(qPrintable("Reading mac..."));
     quint32 mac0 = readReg(ESP_OTP_MAC0);
     quint32 mac1 = readReg(ESP_OTP_MAC1);
     char mac[6] = {0, 0, 0, 0, 0, 0};
@@ -335,7 +333,7 @@ QByteArray ESPRom::readMAC()
         mac[1] = 0xd0;
         mac[2] = 0x74;
     }else
-        return QByteArray(); //"Unknown OUI";
+        return QByteArray();
 
     mac[3] = (mac1 >> 8) & 0xff;
     mac[4] = mac1 & 0xff;

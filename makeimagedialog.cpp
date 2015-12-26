@@ -38,9 +38,15 @@ void MakeImageDialog::enableActions(bool enabled)
 
 void MakeImageDialog::addFileField()
 {
-    ImageChooser *fileField = new ImageChooser(true, ui->filesGroup);
-    m_filesFields.append(fileField);
-    ui->verticalLayoutFG->addWidget(fileField);
+    if(m_filesFields.size() < 5)
+    {
+        ImageChooser *fileField = new ImageChooser(true, ui->filesGroup);
+        m_filesFields.append(fileField);
+        ui->verticalLayoutFG->addWidget(fileField);
+    }
+
+    if(m_filesFields.size() == 5)
+        ui->addFileBtn->setEnabled(false);
 }
 
 void MakeImageDialog::setFile()
