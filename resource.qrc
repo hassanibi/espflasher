@@ -1,0 +1,37 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>res/images/light/appbar.clipboard.variant.text.png</file>
+        <file>res/images/light/appbar.printer.text.png</file>
+        <file>res/images/light/appbar.barcode.png</file>
+        <file>res/images/light/appbar.usb.drive.png</file>
+        <file>res/images/light/appbar.usb.png</file>
+        <file>res/images/light/appbar.folder.open.png</file>
+        <file>res/images/light/appbar.hardware.cpu.png</file>
+        <file>res/images/light/appbar.clear.inverse.reflect.horizontal.png</file>
+        <file>res/images/light/appbar.clear.reflect.horizontal.png</file>
+        <file>res/images/light/appbar.question.png</file>
+        <file>res/images/light/appbar.settings.png</file>
+        <file>res/images/light/appbar.close.png</file>
+        <file>res/images/light/appbar.inbox.in.png</file>
+        <file>res/images/light/appbar.inbox.out.png</file>
+        <file>res/images/light/appbar.information.circle.png</file>
+        <file>res/images/light/appbar.information.png</file>
+        <file>res/images/light/appbar.disk.download.png</file>
+        <file>res/images/light/appbar.disk.png</file>
+        <file>res/images/light/appbar.disk.upload.png</file>
+        <file>res/images/light/appbar.cog.png</file>
+        <file>res/images/light/appbar.rocket.png</file>
+        <file>res/images/app/16.png</file>
+        <file>res/images/app/20.png</file>
+        <file>res/images/app/24.png</file>
+        <file>res/images/app/32.png</file>
+        <file>res/images/app/48.png</file>
+        <file>res/images/app/64.png</file>
+        <file>res/images/app/128.png</file>
+        <file>res/images/app/512.png</file>
+        <file>res/images/light/appbar.add.png</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file>res/fonts/code128.ttf</file>
+    </qresource>
+</RCC>
