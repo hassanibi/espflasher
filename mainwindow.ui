@@ -312,6 +312,15 @@
         <layout class="QGridLayout" name="gridLayout">
          <item row="2" column="0">
           <widget class="QPushButton" name="eraseFlashBtn">
+           <property name="toolTip">
+            <string>Perform Chip Erase on SPI flash.</string>
+           </property>
+           <property name="statusTip">
+            <string>Perform Chip Erase on SPI flash.</string>
+           </property>
+           <property name="whatsThis">
+            <string>Perform Chip Erase on SPI flash.</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">text-align:left;
 font-weight: bold;

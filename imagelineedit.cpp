@@ -99,7 +99,7 @@ void ImageLineEdit::paintEvent(QPaintEvent * event)
         QRect progressRect(backgroundRect.x(), backgroundRect.y(), mid, backgroundRect.height());
         painter.drawRect(progressRect);
 
-        painter.setPen(Qt::SolidLine);
+        painter.setPen(Qt::white);
         painter.drawText(backgroundRect,Qt::AlignLeft|Qt::AlignVCenter, " " + this->text());
     }
 }

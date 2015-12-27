@@ -28,7 +28,9 @@ SOURCES += main.cpp\
     barcodeprinter.cpp \
     hexlineedit.cpp \
     makeimagedialog.cpp \
-    versiondialog.cpp
+    versiondialog.cpp \
+    imagefilelistview.cpp \
+    imagefiledelegate.cpp
 
 HEADERS  += mainwindow.h \
     elffile.h \
@@ -43,7 +45,9 @@ HEADERS  += mainwindow.h \
     barcodeprinter.h \
     hexlineedit.h \
     makeimagedialog.h \
-    versiondialog.h
+    versiondialog.h \
+    imagefilelistview.h \
+    imagefiledelegate.h
 
 FORMS    += mainwindow.ui \
     imagechooser.ui \
