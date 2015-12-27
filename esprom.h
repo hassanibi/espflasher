@@ -1,6 +1,10 @@
 #ifndef ESPROM_H
 #define ESPROM_H
 
+/*
+ * Based on https://github.com/themadinventor/esptool.git
+ */
+
 #include <QObject>
 #include <QSerialPort>
 #include <QByteArray>

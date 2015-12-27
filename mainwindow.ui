@@ -305,7 +305,7 @@
     <item>
      <widget class="QGroupBox" name="flashActionsGroup">
       <property name="title">
-       <string>Flash:</string>
+       <string>SPI Flash actions:</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -313,7 +313,10 @@
          <item row="2" column="0">
           <widget class="QPushButton" name="eraseFlashBtn">
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;
+font-weight: bold;
+color:rgb(255, 255, 255);
+background-color:rgb(214, 29, 29);</string>
            </property>
            <property name="text">
             <string>Erase Flash</string>
@@ -342,7 +345,7 @@
             <string>Read SPI flash content</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Read Flash</string>
@@ -377,7 +380,10 @@
             <string>Write a binary blob to flash</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;
+color:rgb(255, 255, 255);
+font-weight: bold;
+background-color:rgb(62, 152, 9);</string>
            </property>
            <property name="text">
             <string>Write Flash</string>
@@ -406,7 +412,8 @@
             <string>Write to arbitrary memory location</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;
+font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Write Memory</string>
@@ -435,7 +442,7 @@
             <string>Download an image to RAM and execute</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Load Ram</string>
@@ -464,7 +471,7 @@
             <string>Read arbitrary memory location</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Read Memory</string>
@@ -493,7 +500,7 @@
             <string>Dump arbitrary memory to disk</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Dump Memory</string>
@@ -522,7 +529,7 @@
             <string>Run application code in flash</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Run Image</string>
@@ -551,7 +558,7 @@
             <string>Create an application image from binary files</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">text-align:left;</string>
+            <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
             <string>Make Image...</string>
@@ -576,6 +583,9 @@
           <font>
            <pointsize>10</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(0, 0, 0)</string>
          </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>

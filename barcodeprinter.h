@@ -1,6 +1,10 @@
 #ifndef BARCODEPRINTER_H
 #define BARCODEPRINTER_H
 
+/*
+ * https://github.com/adamgiacomelli/Qt-barcode.git
+ */
+
 #include <QObject>
 #include <QtPrintSupport>
 

@@ -85,6 +85,11 @@
             <height>40</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
          </widget>
         </item>
         <item row="0" column="1">
@@ -117,6 +122,11 @@
             <width>16777215</width>
             <height>40</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
           </property>
           <property name="inputMask">
            <string>\0\xhhhhhhhh</string>
