@@ -570,7 +570,7 @@ font-weight:bold;</string>
             <string notr="true">text-align:left;font-weight:bold;</string>
            </property>
            <property name="text">
-            <string>Make Image...</string>
+            <string>Image Tools...</string>
            </property>
            <property name="icon">
             <iconset resource="resource.qrc">

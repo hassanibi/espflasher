@@ -154,7 +154,7 @@ void MainWindow::open()
     int tries = 10;
     while (tries-- > 0) {
         if(m_esp->open()){
-            ui->logList->addEntry(QString("Conected to %1.").arg(m_esp->portName()));
+            ui->logList->addEntry(QString("Connected to %1.").arg(m_esp->portName()));
             break;
         }
     }
@@ -173,7 +173,7 @@ void MainWindow::displayMAC()
         return;
     }
 
-    QString macAddress =  m_esp->macAddress();
+    QString macAddress =  m_esp->macAddress().toUpper();
     QString filename(macAddress +".pdf");
     BarcodePrinter *printer = new BarcodePrinter(filename);
     printer->printBarcode(macAddress);
@@ -204,7 +204,7 @@ void MainWindow::printMAC()
         return;
     }
 
-    QString macAddress =  m_esp->macAddress();
+    QString macAddress =  m_esp->macAddress().toUpper();
     QString filename(macAddress +".pdf");
     if(!QFileInfo(filename).exists()){
         return;
@@ -264,7 +264,8 @@ void MainWindow::writeFlash()
 
             m_filesFields.at(i)->setProgress(0);
 
-            if(file.open(QIODevice::ReadOnly)){
+            if(file.open(QIODevice::ReadOnly))
+            {
                 QByteArray image = file.readAll();
                 quint32 blocks = ESPFlasher::Tools::divRoundup(image.size(), ESP_FLASH_BLOCK);
                 if(!m_esp->flashBegin(blocks * ESP_FLASH_BLOCK, address)){
@@ -273,9 +274,13 @@ void MainWindow::writeFlash()
                 }
                 quint32 seq = 0;
                 int written = 0, pos = 0;
-                while(pos < image.size()){
+                while(pos < image.size())
+                {
 
-                    ui->logList->addEntry(QString::asprintf("Writing at 0x%08x... (%d %%)",  address + seq * ESP_FLASH_BLOCK, 100 * (seq + 1) / blocks), LogList::Info, seq);
+                    ui->logList->addEntry(QString::asprintf("Writing '%s' at 0x%08x... (%d %%)",
+                                                            QFileInfo(filename).fileName().toLatin1().data(),
+                                                            address + seq * ESP_FLASH_BLOCK,
+                                                            100 * (seq + 1) / blocks), LogList::Info, seq);
                     m_filesFields.at(i)->setProgress(100 * (seq + 1) / blocks);
 
                     QByteArray block = image.mid(pos, ESP_FLASH_BLOCK);
@@ -296,7 +301,10 @@ void MainWindow::writeFlash()
                     written += block.size();
 
                 }
+
                 file.close();
+
+                ui->logList->addEntry(QString::asprintf("Wrote %d bytes at 0x%08x",  written, address), LogList::Info, seq);
             }
         }
     }
@@ -305,7 +313,7 @@ void MainWindow::writeFlash()
         m_esp->flashUnlockDIO();
     }else{
         m_esp->flashBegin(0, 0);
-        m_esp->flashFinish(false);
+        m_esp->flashFinish(true);
     }
 }
 

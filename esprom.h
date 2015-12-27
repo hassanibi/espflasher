@@ -82,7 +82,7 @@ public:
 
     QString macAddress() {
         if(m_macAddress.isEmpty())
-            m_macAddress = readMAC();
+            m_macAddress = readMAC().toHex();
         return m_macAddress;
     }
 

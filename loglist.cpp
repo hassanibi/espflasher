@@ -10,27 +10,31 @@ LogList::LogList(QWidget *parent) : QListWidget(parent)
 
 void LogList::addEntry(const QString &str, LogLevel level, int currentRow)
 {
-    QListWidgetItem *item = new QListWidgetItem(this);
+    QListWidgetItem *it;
 
-    QFont font = item->font();
+    if(currentRow > 0)
+        it = item(count() - 1);
+    else
+    {
+        it = new QListWidgetItem(this);
+        addItem(it);
+    }
+
+    QFont font = it->font();
     switch (level) {
     case Info:
-        item->setForeground(Qt::white); break;
+        it->setForeground(Qt::white); break;
     case Warning:
-        item->setForeground(Qt::yellow); break;
+        it->setForeground(Qt::yellow); break;
     case Error:
-        item->setForeground(Qt::red); break;
+        it->setForeground(Qt::red); break;
     default:
         break;
     }
-    font.setBold(true);
-    item->setFont(font);
-    item->setText(QString("%1 %3").arg(QDateTime::currentDateTime().toString("hh:mm:ss")).arg(str));
 
-    if(currentRow > 0)
-        insertItem(count() - 1, item);
-    else
-        addItem(item);
+    font.setBold(true);
+    it->setFont(font);
+    it->setText(QString("%1 %3").arg(QDateTime::currentDateTime().toString("hh:mm:ss")).arg(str));
 
     scrollToBottom();
 }
