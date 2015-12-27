@@ -101,7 +101,7 @@ public:
         if (dialog.isNull ())
         {
             dialog = new DialogT (std::forward<ArgsT> (args)...);
-            dialog->setAttribute (Qt::WA_DeleteOnClose);
+            //dialog->setAttribute (Qt::WA_DeleteOnClose);
         }
         else
         {

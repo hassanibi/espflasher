@@ -69,6 +69,7 @@ private slots:
 
     void espCmdStarted();
     void espCmdFinished();
+    void espError(const QString &errorText);
 
     void openAbout();
 

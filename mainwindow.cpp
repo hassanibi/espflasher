@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_esp, SIGNAL(commandStarted(ESPCommand)), this, SLOT(espCmdStarted()));
     connect(m_esp, SIGNAL(commandFinished(ESPCommand)), this, SLOT(espCmdFinished()));
+    connect(m_esp, SIGNAL(commandError(QString)), this, SLOT(espError(QString)));
 
     connect(ui->actionImport_image_file_list, SIGNAL(triggered(bool)), this, SLOT(importImageList()));
     connect(ui->actionExport_image_file_list, SIGNAL(triggered(bool)), this, SLOT(exportImageList()));
@@ -248,6 +249,8 @@ void MainWindow::writeFlash()
     if(!m_esp->isOpen()){
         return;
     }
+
+    ui->tabWidget->setCurrentIndex(1);
 
     quint8 flashMode = (quint8)ui->spiMode->currentData().toInt();
     quint8 flashSizeFreq = (quint8)ui->flashSize->currentData().toInt() + (quint8)ui->spiSpeed->currentData().toInt();
@@ -531,4 +534,9 @@ void MainWindow::espCmdFinished()
     ui->runImageBtn->setEnabled(true);
     ui->loadRamBtn->setEnabled(true);
     ui->eraseFlashBtn->setEnabled(true);
+}
+
+void MainWindow::espError(const QString &errorText)
+{
+    ui->logList->addEntry(QString("A fatal error occurred: %1").arg(errorText), LogList::Error);
 }

@@ -108,6 +108,7 @@ public:
 signals:
     void commandStarted(ESPCommand cmd = NoCommand);
     void commandFinished(ESPCommand cmd = NoCommand);
+    void commandError(const QString &errorText);
 
 public slots:
     void writeData(const QByteArray &data);
@@ -118,6 +119,7 @@ private:
     bool sync();
     QByteArray read(int size = 1);
     void write(QByteArray data);
+    QString errorText(CommandResponse response);
 
 private:
     QSerialPort *serialPort;

@@ -2,6 +2,7 @@
 #include "ui_flashinputdialog.h"
 
 #include <QFileDialog>
+#include <QDebug>
 
 FlashInputDialog::FlashInputDialog(Fields fields, QWidget *parent) :
     QDialog(parent),
@@ -10,19 +11,24 @@ FlashInputDialog::FlashInputDialog(Fields fields, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->fileLineEdit->clear();;
     ui->fileLabel->setVisible(m_fields & FileField);
     ui->fileLineEdit->setVisible(m_fields & FileField);
     ui->fileBtn->setVisible(m_fields & FileField);
 
+    ui->addressLineEdit->clear();;
     ui->addressLabel->setVisible(m_fields & AddressField);
     ui->addressLineEdit->setVisible(m_fields & AddressField);
 
+    ui->valueLineEdit->clear();;
     ui->valueLabel->setVisible(m_fields & ValueField);
     ui->valueLineEdit->setVisible(m_fields & ValueField);
 
+    ui->sizeLineEdit->clear();;
     ui->sizeLabel->setVisible(m_fields & SizeField);
     ui->sizeLineEdit->setVisible(m_fields & SizeField);
 
+    ui->maskLineEdit->clear();;
     ui->maskLabel->setVisible(m_fields & MaskField);
     ui->maskLineEdit->setVisible(m_fields & MaskField);
 

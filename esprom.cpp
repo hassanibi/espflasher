@@ -78,6 +78,22 @@ void ESPRom::write(QByteArray data)
     serialPort->write(buf.data(), buf.size());
 }
 
+QString ESPRom::errorText(CommandResponse response)
+{
+    switch (response.error()) {
+    case CommandResponse::InvalidResponse:
+        return QString::asprintf("Invalid response 0x%02x to command", response.value);
+        break;
+    case CommandResponse::InvalidPacketHead:
+        return QLatin1String("Invalid head of packet");
+        break;
+    case CommandResponse::InvalidPacketEnd:
+        return QLatin1String("Invalid ed of packet");
+        break;
+    default:
+        break;
+    }
+}
 
 CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 size, quint32 chk)
 {
@@ -103,8 +119,9 @@ CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 si
     }
 
     int retries = 100;
+    CommandResponse response;
     while (retries > 0){
-        CommandResponse response = receiveResponse();
+        response = receiveResponse();
         if(cmd == NoCommand || response.cmd == (quint8)cmd){
             emit commandFinished(cmd);
             return response;
@@ -112,7 +129,7 @@ CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 si
         retries--;
     }
 
-    emit commandFinished(cmd);
+    emit commandError(errorText(response));
 
     return CommandResponse::InvalidResponse;
 }
