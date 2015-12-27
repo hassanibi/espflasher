@@ -2,8 +2,8 @@
 An open source and cross platform firmware programmer for ESP8266 chip.
 
 ## Screenshots
-![Alt text](/res/screenshots/2015-12-27_19:45:49.png)
-![Alt text](/res/screenshots/2015-12-27_19:53:09.png)
+![Alt text](res/screenshots/2015-12-27_19:45:49.png?raw=true)
+![Alt text](res/screenshots/2015-12-27_19:53:09.png?raw=true)
 ## Features
 - Write an image to flash.
 - Read SPI flash content.
