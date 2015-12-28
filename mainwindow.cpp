@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "constants.h"
 #include "esprom.h"
 #include "espfirmwareimage.h"
 #include "tools.h"
@@ -22,6 +23,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QPrintDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -135,37 +137,40 @@ void MainWindow::enableActions()
     ui->loadRamBtn->setEnabled(deviceConnected);
     ui->eraseFlashBtn->setEnabled(deviceConnected);
     ui->macAddressGroup->setEnabled(deviceConnected);
+
+    ui->openBtn->setText(deviceConnected ? tr("Disconnect") : tr("Connect"));
 }
 
 void MainWindow::open()
 {
     if(m_esp->isOpen()){
         m_esp->close();
-        ui->openBtn->setText(tr("Connect"));
         enableActions();
         return;
     }
 
     m_esp->setSerialPort(ui->serialPort->currentData().toString(), (QSerialPort::BaudRate)ui->baudRate->currentData().toInt());
 
-    ui->openBtn->setText(tr("Connecting..."));
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);
 
-    int tries = 10;
-    while (tries-- > 0) {
+    int tries = 0;
+    while (tries++ < 20) {
         if(m_esp->open()){
-            ui->logList->addEntry(QString("Connected to %1.").arg(m_esp->portName()));
+            displayMAC();
+            ui->logList->addEntry(QString("Connected to %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
             break;
         }
+        QCoreApplication::processEvents();
     }
 
-    displayMAC();
-
-    ui->openBtn->setText(m_esp->isOpen() ? tr("Disconnect") : tr("Connect"));
     ui->openBtn->setEnabled(true);
-    enableActions();
     setCursor(Qt::ArrowCursor);
+    enableActions();
+
+    if(!m_esp->isOpen()){
+        ui->logList->addEntry("Failed to connect to ESP8266", LogList::Error);
+    }
 }
 
 void MainWindow::displayMAC()
@@ -245,7 +250,6 @@ void MainWindow::copyMAC()
 
 void MainWindow::writeFlash()
 {  
-
     if(!m_esp->isOpen()){
         return;
     }
@@ -258,66 +262,71 @@ void MainWindow::writeFlash()
     flashInfo.append(flashMode);
     flashInfo.append(flashSizeFreq);
 
-    for(int i = 0; i < m_filesFields.size(); i++){
-        if(m_filesFields.at(i)->isValid()){
-
-            QString filename = m_filesFields.at(i)->filename();
-            quint32 address = m_filesFields.at(i)->offset();
-            QFile file(filename);
-
-            m_filesFields.at(i)->setProgress(0);
-
-            if(file.open(QIODevice::ReadOnly))
-            {
-                QByteArray image = file.readAll();
-                quint32 blocks = ESPFlasher::Tools::divRoundup(image.size(), ESP_FLASH_BLOCK);
-                if(!m_esp->flashBegin(blocks * ESP_FLASH_BLOCK, address)){
-                    ui->logList->addEntry("Failed to enter Flash download mode", LogList::Error);
-                    return;
-                }
-                quint32 seq = 0;
-                int written = 0, pos = 0;
-                while(pos < image.size())
-                {
-
-                    ui->logList->addEntry(QString::asprintf("Writing '%s' at 0x%08x... (%d %%)",
-                                                            QFileInfo(filename).fileName().toLatin1().data(),
-                                                            address + seq * ESP_FLASH_BLOCK,
-                                                            100 * (seq + 1) / blocks), LogList::Info, seq);
-                    m_filesFields.at(i)->setProgress(100 * (seq + 1) / blocks);
-
-                    QByteArray block = image.mid(pos, ESP_FLASH_BLOCK);
-                    if (address == 0 && seq == 0 && block.at(0) == '\xe9'){
-                        block = block.mid(0, 2) + flashInfo + block.mid(4);
-                    }
-                    int blockSize = block.size();
-                    for(int j = 0; j < (ESP_FLASH_BLOCK - blockSize); j++){
-                        block.append("\xff", 1);
-                    }
-                    if(!m_esp->flashBlock(block, seq)){
-                        ui->logList->addEntry(QString("Failed to write to target Flash after seq %1").arg(seq), LogList::Error);
-                        return;
-                    }
-
-                    seq += 1;
-                    pos += ESP_FLASH_BLOCK;
-                    written += block.size();
-
-                }
-
-                file.close();
-
-                ui->logList->addEntry(QString::asprintf("Wrote %d bytes at 0x%08x",  written, address), LogList::Info, seq);
-            }
+    int totalWritten = 0;
+    for(int i = 0; i < m_filesFields.size(); i++)
+    {
+        if(!m_filesFields.at(i)->isValid()){
+            continue;
         }
+
+        QString filename = m_filesFields.at(i)->filename();
+        quint32 address = m_filesFields.at(i)->offset();
+        QFile file(filename);
+        if(!file.open(QIODevice::ReadOnly)){
+            continue;
+        }
+
+        m_filesFields.at(i)->setProgress(0);
+        QByteArray image = file.readAll();
+        quint32 blocks = ESPFlasher::Tools::divRoundup(image.size(), ESP_FLASH_BLOCK);
+        if(!m_esp->flashBegin(blocks * ESP_FLASH_BLOCK, address)){
+            ui->logList->addEntry("Failed to enter Flash download mode", LogList::Error);
+            return;
+        }
+
+        quint32 seq = 0;
+        int written = 0, pos = 0;
+        while(pos < image.size())
+        {
+            ui->logList->addEntry(QString::asprintf(WRITE_FLASH_PROGRESS,
+                                                    QFileInfo(filename).fileName().toLatin1().data(),
+                                                    address + seq * ESP_FLASH_BLOCK,
+                                                    100 * (seq + 1) / blocks), LogList::Info, seq);
+            m_filesFields.at(i)->setProgress(100 * (seq + 1) / blocks);
+
+            QByteArray block = image.mid(pos, ESP_FLASH_BLOCK);
+            if (address == 0 && seq == 0 && block.at(0) == '\xe9'){
+                block = block.mid(0, 2) + flashInfo + block.mid(4);
+            }
+            int blockSize = block.size();
+            for(int j = 0; j < (ESP_FLASH_BLOCK - blockSize); j++){
+                block.append("\xff", 1);
+            }
+            if(!m_esp->flashBlock(block, seq)){
+                ui->logList->addEntry(QString("Failed to write to target Flash after seq %1").arg(seq), LogList::Error);
+                return;
+            }
+
+            seq += 1;
+            pos += ESP_FLASH_BLOCK;
+            written += block.size();
+
+        }
+
+        totalWritten += written;
+        file.close();
+        ui->logList->addEntry(QString::asprintf("Wrote %d bytes at 0x%08x",  written, address), LogList::Info, seq);
     }
 
     if(flashMode == DIO){
         m_esp->flashUnlockDIO();
     }else{
         m_esp->flashBegin(0, 0);
-        m_esp->flashFinish(true);
+        m_esp->flashFinish(false);
     }
+
+    QMessageBox::information(this, "", QString("Flash complete! (Wrote %1 bytes).  Unplug and replug your device to contiue.").arg(totalWritten), QMessageBox::Ok);
+    open();//close port
 }
 
 void MainWindow::readFlash()
@@ -326,19 +335,20 @@ void MainWindow::readFlash()
         return;
     }
 
-    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::FileField | FlashInputDialog::AddressField | FlashInputDialog::SizeField, this) == QDialog::Rejected){
-        return;
+    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::FileField | FlashInputDialog::AddressField | FlashInputDialog::SizeField, this) == QDialog::Accepted)
+    {
+        QString fileName = m_inputDialog->filename();
+        quint32 address = m_inputDialog->address();
+        quint32 size = m_inputDialog->size();
+
+        QFile file(fileName);
+        if(file.open(QIODevice::WriteOnly)){
+            file.write(m_esp->flashRead(address, 1024, ESPFlasher::Tools::divRoundup(size, 1024)).mid(0, size));
+            file.close();
+        }
     }
 
-    QString fileName = m_inputDialog->filename();
-    int address = m_inputDialog->address();
-    int size = m_inputDialog->size();
-
-    QFile file(fileName);
-    if(file.open(QIODevice::WriteOnly)){
-        file.write(m_esp->flashRead(address, 1024, ESPFlasher::Tools::divRoundup(size, 1024)).mid(0, size));
-        file.close();
-    }
+    delete m_inputDialog;
 }
 
 void MainWindow::loadRam()
@@ -347,8 +357,7 @@ void MainWindow::loadRam()
         return;
     }
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Load ESP Firmware Image"),
-                                                    QDir::currentPath(), tr("Binary Files (*.bin)"));
+    QString fileName = QFileDialog::getOpenFileName(this, QLatin1String(LOAD_IMAGE_TITLE), QDir::currentPath(), QLatin1String(BIN_FILES_FILTER));
     if(fileName.isEmpty()){
         return;
     }
@@ -378,33 +387,33 @@ void MainWindow::dumpMemory()
         return;
     }
 
-    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::AddressField | FlashInputDialog::SizeField, this) == QDialog::Rejected){
-        return;
-    }
+    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::FileField | FlashInputDialog::AddressField | FlashInputDialog::SizeField, this) == QDialog::Accepted)
+    {
+        QString fileName = m_inputDialog->filename();
+        quint32 address = m_inputDialog->address();
+        quint32 size = m_inputDialog->size();
 
-    int address = m_inputDialog->address();
-    int size = m_inputDialog->size();
-
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Dump memory to file"),
-                                                    QDir::currentPath(), tr("Binary Files (*.bin)"));
-    if(fileName.isEmpty()){
-        return;
-    }
-
-    int k = 0;
-    QFile file(fileName);
-    if(file.open(QIODevice::WriteOnly)){
-        for(int i = 0; i < size / 4; i++){
-            char bytes[4];
-            ESPFlasher::quint32toBytes(m_esp->readReg(address + (i * 4)), &bytes[0]);
-            file.write(bytes, 4);
-            if(file.pos() % 1024 == 0){
-                ui->logList->addEntry(QString::asprintf("%lld bytes read... (%lld %%)", file.pos(), file.pos() * 100 / size), LogList::Info, k++);
-            }
+        if(fileName.isEmpty()){
+            return;
         }
-        file.close();
+
+        int k = 0;
+        QFile file(fileName);
+        if(file.open(QIODevice::WriteOnly)){
+            for(int i = 0; i < size / 4; i++){
+                char bytes[4];
+                quint32 value = m_esp->readReg(address + (i * 4));
+                ESPFlasher::quint32toBytes(value, &bytes[0]);
+                file.write(bytes, 4);
+                if(file.pos() % 1024 == 0){
+                    ui->logList->addEntry(QString::asprintf("%lld bytes read... (%lld %%)", file.pos(), file.pos() * 100 / size), LogList::Info, k++);
+                }
+            }
+            file.close();
+        }
     }
 
+    delete m_inputDialog;
 }
 
 void MainWindow::readMemory()
@@ -413,14 +422,16 @@ void MainWindow::readMemory()
         return;
     }
 
-    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::AddressField, this) == QDialog::Rejected){
-        return;
+    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::AddressField, this) == QDialog::Accepted)
+    {
+        quint32 address = m_inputDialog->address();
+        quint32 value = m_esp->readReg(address);
+        if(value > -1){
+            ui->logList->addEntry(QString::asprintf("0x%08x = 0x%08x", address, value));
+        }
     }
 
-    int address = m_inputDialog->address();
-
-    ui->logList->addEntry(QString::asprintf("0x%08x = 0x%08x", address, m_esp->readReg(address)));
-
+    delete m_inputDialog;
 }
 
 void MainWindow::writeMemory()
@@ -429,17 +440,17 @@ void MainWindow::writeMemory()
         return;
     }
 
-    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::AddressField | FlashInputDialog::ValueField | FlashInputDialog::MaskField, this) == QDialog::Rejected){
-        return;
+    if(ESPFlasher::Tools::openDialog (m_inputDialog, FlashInputDialog::AddressField | FlashInputDialog::ValueField | FlashInputDialog::MaskField, this) == QDialog::Accepted)
+    {
+        quint32 address = m_inputDialog->address();
+        quint32 value = m_inputDialog->value();
+        quint32 mask = m_inputDialog->mask();
+
+        m_esp->writeReg(address, value, mask, 0);
+        ui->logList->addEntry(QString::asprintf("Wrote 0x%08x, mask 0x%08x to 0x%08x", value, mask, address));
     }
 
-    int address = m_inputDialog->address();
-    int value = m_inputDialog->value();
-    int mask = m_inputDialog->mask();
-
-    m_esp->writeReg(address, value, mask, 0);
-    ui->logList->addEntry(QString::asprintf("Wrote %08x, mask %08x to %08x", value, mask, address));
-
+    delete m_inputDialog;
 }
 
 void MainWindow::makeImage()
@@ -468,19 +479,17 @@ void MainWindow::importImageList()
     if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
         int i = 0;
         while(!file.atEnd()){
-            QString line = QString::fromLocal8Bit(file.readLine().data());
+            QString line = QString::fromLocal8Bit(file.readLine().simplified().data());
             if(!line.startsWith("#")){
-                QList<QString> fileAddress = line.split(QRegExp("\\s"));
-                if(fileAddress.size() > 2){
+                QList<QString> fileAddress = line.split(":");
+                if(fileAddress.size() == 2){
                     m_filesFields.at(i)->setFilename(fileAddress.at(0));
                     m_filesFields.at(i)->setOffset(fileAddress.at(1).toInt(0, 16));
                     i++;
                 }
-
             }
         }
         file.close();
-
         ui->tabWidget->setCurrentIndex(1);
     }
 }
@@ -498,7 +507,7 @@ void MainWindow::exportImageList()
         QTextStream out(&file);
         for(int i = 0; i < m_filesFields.size(); i++){
             if(m_filesFields.at(i)->isValid()){
-                out << m_filesFields.at(i)->filename() << "\t"
+                out << m_filesFields.at(i)->filename() << ":"
                     << QString::asprintf("0x%05x", m_filesFields.at(i)->offset()) << "\n";
             }
         }
@@ -539,4 +548,5 @@ void MainWindow::espCmdFinished()
 void MainWindow::espError(const QString &errorText)
 {
     ui->logList->addEntry(QString("A fatal error occurred: %1").arg(errorText), LogList::Error);
+    espCmdFinished();
 }

@@ -21,8 +21,8 @@ public:
 
     QString filename();
     void setFilename(const QString &fn);
-    int offset();
-    void setOffset(int of);
+    quint32 offset();
+    void setOffset(quint32 of);
     bool isValid();
 
     void setProgress(int progress);

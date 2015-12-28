@@ -29,8 +29,7 @@ SOURCES += main.cpp\
     hexlineedit.cpp \
     makeimagedialog.cpp \
     versiondialog.cpp \
-    imagefilelistview.cpp \
-    imagefiledelegate.cpp
+    imagefilelistview.cpp
 
 HEADERS  += mainwindow.h \
     elffile.h \
@@ -47,7 +46,7 @@ HEADERS  += mainwindow.h \
     makeimagedialog.h \
     versiondialog.h \
     imagefilelistview.h \
-    imagefiledelegate.h
+    constants.h
 
 FORMS    += mainwindow.ui \
     imagechooser.ui \

@@ -31,7 +31,7 @@ public:
     void addSegment(quint32 addr, QByteArray data);
     bool save(const QString &filename);
 
-    void setEntryPoint(int entryPoint) { m_entryPoint = entryPoint; }
+    void setEntryPoint(quint32 entryPoint) { m_entryPoint = entryPoint; }
 
     bool isValid() { return m_error == NoError; }
     QString errorText() { return m_errorText; }

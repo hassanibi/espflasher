@@ -18,7 +18,7 @@ public:
         AddressField = 0x02,
         ValueField = 0x04,
         SizeField = 0x08,
-        MaskField = 0x16
+        MaskField = 0x10
     };
     Q_DECLARE_FLAGS(Fields, FieldsFlag)
 
@@ -26,10 +26,10 @@ public:
     ~FlashInputDialog();
 
     QString filename();
-    int address();
-    int value();
-    int size();
-    int mask();
+    quint32 address();
+    quint32 value();
+    quint32 size();
+    quint32 mask();
 
 private slots:
     void setFile();

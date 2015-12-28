@@ -108,6 +108,7 @@ public:
             dialog->raise ();
             dialog->activateWindow ();
         }
+
         return dialog->exec();
     }
 

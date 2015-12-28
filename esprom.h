@@ -86,7 +86,7 @@ public:
         return m_macAddress;
     }
 
-    quint32 readReg(quint32 addr);
+    int readReg(quint32 addr);
     bool writeReg(quint32 addr, quint32 value, quint32 mask, quint32 delayus = 0);
 
     bool memBegin(quint32 size, quint32 blocks, quint32 blocksize, quint32 offset);

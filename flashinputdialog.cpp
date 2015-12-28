@@ -28,7 +28,7 @@ FlashInputDialog::FlashInputDialog(Fields fields, QWidget *parent) :
     ui->sizeLabel->setVisible(m_fields & SizeField);
     ui->sizeLineEdit->setVisible(m_fields & SizeField);
 
-    ui->maskLineEdit->clear();;
+    ui->maskLineEdit->clear();
     ui->maskLabel->setVisible(m_fields & MaskField);
     ui->maskLineEdit->setVisible(m_fields & MaskField);
 
@@ -54,22 +54,22 @@ QString FlashInputDialog::filename()
     return ui->fileLineEdit->text();
 }
 
-int FlashInputDialog::address()
+quint32 FlashInputDialog::address()
 {
-    return ui->addressLineEdit->text().toInt(0, 16);
+    return ui->addressLineEdit->text().toUInt(0, 16);
 }
 
-int FlashInputDialog::value()
+quint32 FlashInputDialog::value()
 {
-    return ui->valueLineEdit->text().toInt(0, 16);
+    return ui->valueLineEdit->text().toUInt(0, 16);
 }
 
-int FlashInputDialog::size()
+quint32 FlashInputDialog::size()
 {
-    return ui->sizeLineEdit->text().toInt(0, 16);
+    return ui->sizeLineEdit->text().toUInt(0, 16);
 }
 
-int FlashInputDialog::mask()
+quint32 FlashInputDialog::mask()
 {
-    return ui->maskLineEdit->text().toInt(0, 16);
+    return ui->maskLineEdit->text().toUInt(0, 16);
 }

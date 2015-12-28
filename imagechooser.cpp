@@ -69,13 +69,13 @@ void ImageChooser::setFilename(const QString &fn)
     ui->checkBox->setChecked(true);
 }
 
-int ImageChooser::offset()
+quint32 ImageChooser::offset()
 {
     QString of = ui->lineEditOffset->text();
-    return !of.isEmpty() ? of.toInt(0, 16) : -1;
+    return !of.isEmpty() ? of.toUInt(0, 16) : 0;
 }
 
-void ImageChooser::setOffset(int of)
+void ImageChooser::setOffset(quint32 of)
 {
     ui->lineEditOffset->setText(QString::asprintf("0x%05x", of));
     ui->lineEditOffset->setEnabled(true);
@@ -83,7 +83,7 @@ void ImageChooser::setOffset(int of)
 
 bool ImageChooser::isValid()
 {
-    return ui->checkBox->isChecked() && !filename().isEmpty() && offset() > -1;
+    return ui->checkBox->isChecked() && !filename().isEmpty() ;//&& offset() > -1;
 }
 
 void ImageChooser::setProgress(int progress)

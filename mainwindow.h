@@ -86,6 +86,7 @@ private:
     QPointer<MakeImageDialog> m_makeImageDialog;
     QPointer<VersionDialog> m_aboutDialog;
     Action m_currentAction;
+    QString m_workingDir;
 
 };
 

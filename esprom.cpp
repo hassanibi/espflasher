@@ -93,6 +93,8 @@ QString ESPRom::errorText(CommandResponse response)
     default:
         break;
     }
+
+    return QString();
 }
 
 CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 size, quint32 chk)
@@ -129,7 +131,9 @@ CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 si
         retries--;
     }
 
-    emit commandError(errorText(response));
+    if(cmd != NoCommand && cmd != Sync){
+        emit commandError(errorText(response));
+    }
 
     return CommandResponse::InvalidResponse;
 }
@@ -220,7 +224,7 @@ void ESPRom::handleSerialError(QSerialPort::SerialPortError error)
     }
 }
 
-quint32 ESPRom::readReg(quint32 addr)
+int ESPRom::readReg(quint32 addr)
 {
     char bytes[4];
     quint32toBytes(addr, bytes);
@@ -228,6 +232,7 @@ quint32 ESPRom::readReg(quint32 addr)
     CommandResponse response = sendCommand(ReadReg, bytes, 4);
 
     if(!response.isValid()){
+        qDebug() << "Failed to read target memory";
         return -1;
     }
 
@@ -242,7 +247,12 @@ bool ESPRom::writeReg(quint32 addr, quint32 value, quint32 mask, quint32 delayus
     quint32toBytes(mask, &bytes[8]);
     quint32toBytes(delayus, &bytes[12]);
 
-    return sendCommand(WriteReg, bytes, 16).isValid();
+    if(!sendCommand(WriteReg, bytes, 16).isValid()){
+        qDebug() << "Failed to write target memory";
+        return false;
+    }
+
+    return true;
 }
 
 bool ESPRom::memBegin(quint32 size, quint32 blocks, quint32 blocksize, quint32 offset)
@@ -253,7 +263,12 @@ bool ESPRom::memBegin(quint32 size, quint32 blocks, quint32 blocksize, quint32 o
     quint32toBytes(blocksize, &bytes[8]);
     quint32toBytes(offset, &bytes[12]);
 
-    return sendCommand(MemBegin, bytes, 16).isValid();
+    if(!sendCommand(MemBegin, bytes, 16).isValid()){
+        qDebug() << "Failed to enter RAM download mode";
+        return false;
+    }
+
+    return true;
 }
 
 bool ESPRom::memBlock(const QByteArray &data, quint32 seq)
@@ -268,7 +283,12 @@ bool ESPRom::memBlock(const QByteArray &data, quint32 seq)
     packet.append(bytes, 16);
     packet.append(data);
 
-    return sendCommand(MemData, packet).isValid();
+    if(!sendCommand(MemData, packet, Tools::checksum(data)).isValid()){
+        qDebug() << "Failed to write to target RAM";
+        return false;
+    }
+
+    return true;
 }
 
 bool ESPRom::memFinish(quint32 entrypoint)
@@ -277,7 +297,10 @@ bool ESPRom::memFinish(quint32 entrypoint)
     quint32toBytes((quint32)(entrypoint == 0), &bytes[0]);
     quint32toBytes(entrypoint, &bytes[4]);
 
-    return sendCommand(MemEnd, bytes, 8).isValid();
+    if(!sendCommand(MemEnd, bytes, 8).isValid()){
+        qDebug() << "Failed to leave RAM download mode";
+        return false;
+    }
 }
 
 bool ESPRom::flashBegin(quint32 size, quint32 offset)
@@ -303,7 +326,12 @@ bool ESPRom::flashBegin(quint32 size, quint32 offset)
     quint32toBytes(ESP_FLASH_BLOCK, &bytes[8]);
     quint32toBytes(offset, &bytes[12]);
 
-    return sendCommand(FlashBegin, bytes, 16).isValid();
+    if(!sendCommand(FlashBegin, bytes, 16).isValid()){
+        qDebug() << "Failed to enter Flash download mode";
+        return false;
+    }
+
+    return true;
 }
 
 bool ESPRom::flashBlock(const QByteArray &data, quint32 seq)
@@ -318,7 +346,12 @@ bool ESPRom::flashBlock(const QByteArray &data, quint32 seq)
     packet.append(bytes, 16);
     packet.append(data);
 
-    return sendCommand(FlashData, packet, Tools::checksum(data)).isValid();
+    if(!sendCommand(FlashData, packet, Tools::checksum(data)).isValid()){
+        qDebug() << "Failed to write to target Flash after";
+        return false;
+    }
+
+    return true;
 }
 
 bool ESPRom::flashFinish(bool reboot)
@@ -326,7 +359,12 @@ bool ESPRom::flashFinish(bool reboot)
     char bytes[4];
     quint32toBytes((quint32)(!reboot), &bytes[0]);
 
-    return sendCommand(FlashEnd, bytes, 4).isValid();
+    if(!sendCommand(FlashEnd, bytes, 4).isValid()){
+        qDebug() << "Failed to leave Flash mode";
+        return false;
+    }
+
+    return true;
 }
 
 void ESPRom::run(bool reboot)
@@ -389,12 +427,14 @@ QByteArray ESPRom::flashRead(quint32 offset, quint32 size, quint32 count)
     QByteArray data;
     for(int i = 0; i < (int)count; i++){
         if(read(1) != QByteArray("\xc0", 1)){
+            qDebug() << "Invalid head of packet (sflash read)";
             return QByteArray();
         }
 
         data += read(size);
 
         if(read(1) != QByteArray("\xc0", 1)){
+            qDebug() << "Invalid end of packet (sflash read)";
             return QByteArray();
         }
     }

@@ -61,7 +61,7 @@ void MakeImageDialog::setFile()
 void MakeImageDialog::makeImage()
 {
     ESPFlasher::ESPFirmwareImage image;
-    int entryPoint = ui->entryPointLineEdit->text().toInt(0, 16);
+    quint32 entryPoint = ui->entryPointLineEdit->text().toUInt(0, 16);
     QString filename = ui->ouputFileLineEdit->text();
 
     if(filename.isEmpty()){
