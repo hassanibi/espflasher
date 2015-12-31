@@ -66,18 +66,18 @@ public:
     };
 
     void setSerialPort(const QString &portName, const QSerialPort::BaudRate baudRate = QSerialPort::Baud115200){
-        serialPort->setPortName(portName);
-        serialPort->setBaudRate(baudRate);
+        m_serialPort->setPortName(portName);
+        m_serialPort->setBaudRate(baudRate);
     }
 
-    QString portName() { return serialPort->portName(); }
+    QString portName() { return m_serialPort->portName(); }
 
     CommandResponse sendCommand(ESPCommand cmd, const char *data, quint16 size, quint32 chk = 0);
     CommandResponse sendCommand(ESPCommand cmd = NoCommand, const QByteArray &data = QByteArray(), quint32 chk = 0);
     CommandResponse receiveResponse();
 
     bool open();
-    bool isOpen() { return serialPort->isOpen(); }
+    bool isOpen() { return m_serialPort->isOpen(); }
     void close();
 
     QString macAddress() {
@@ -86,7 +86,7 @@ public:
         return m_macAddress;
     }
 
-    int readReg(quint32 addr);
+    quint32 readReg(quint32 addr);
     bool writeReg(quint32 addr, quint32 value, quint32 mask, quint32 delayus = 0);
 
     bool memBegin(quint32 size, quint32 blocks, quint32 blocksize, quint32 offset);
@@ -97,33 +97,34 @@ public:
     bool flashBlock(const QByteArray &data, quint32 seq);
     bool flashFinish(bool reboot = false);
 
-    void run(bool reboot = false);
+    bool run(bool reboot = false);
     QByteArray readMAC();
     quint32 flashID();
     QByteArray flashRead(quint32 offset, quint32 size, quint32 count = 1);
 
-    void flashUnlockDIO();
-    void flashErase();
+    bool flashUnlockDIO();
+    bool flashErase();
 
 signals:
     void commandStarted(ESPCommand cmd = NoCommand);
     void commandFinished(ESPCommand cmd = NoCommand);
     void commandError(const QString &errorText);
 
-public slots:
-    void writeData(const QByteArray &data);
+private slots:
     void readData();
     void handleSerialError(QSerialPort::SerialPortError error);
 
 private:
     bool sync();
-    QByteArray read(int size = 1);
+    QByteArray readAndEscape(int size = 1);
+    QByteArray readBytes(int size = 1);
     void write(QByteArray data);
     QString errorText(CommandResponse response);
 
 private:
-    QSerialPort *serialPort;
+    QSerialPort *m_serialPort;
     QString m_macAddress;
+    int m_waitTimeout;
 };
 
 } //namespace ESPFlasher

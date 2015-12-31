@@ -75,9 +75,10 @@ ESPFirmwareImage::ESPFirmwareImage(const QString &filename):
 
 void ESPFirmwareImage::addSegment(quint32 addr, QByteArray data)
 {
-    if (data.size() % 4){
-        for(int i = 0; i < (4 - data.size() % 4); i++){
-            data += "\x00";
+    int size = data.size();
+    if (size % 4){
+        for(int i = 0; i < (4 - size % 4); i++){
+            data += QByteArray("\x00", 1);
         }
     }
 
@@ -85,7 +86,7 @@ void ESPFirmwareImage::addSegment(quint32 addr, QByteArray data)
         Segment segment;
         segment.offset = addr;
         segment.size = data.size();
-        segment.data = data.data();
+        segment.data = data;
         m_segments.append(segment);
     }
 
@@ -98,25 +99,37 @@ bool ESPFirmwareImage::save(const QString &filename)
         return false;
     }
 
-    int writeCount = 0;
-    QDataStream dataStream(&file);
-    dataStream.setByteOrder(QDataStream::LittleEndian);
-    dataStream << (quint8)ESP_IMAGE_MAGIC << (quint8)m_segments.size() <<  m_flashMode << m_flashSizeFreq << m_entryPoint;
-    writeCount += 8;
+    QByteArray data;
+
+    char bytes[8] = {
+        (char)ESP_IMAGE_MAGIC, (char)m_segments.size(),
+        (char)m_flashMode, (char)m_flashSizeFreq,
+        0, 0, 0, 0
+    };
+
+    quint32toBytes(m_entryPoint, &bytes[4]);
+    data.append(bytes, 8);
 
     quint8 checksum = (quint8)ESP_CHECKSUM_MAGIC;
-    for(int i = 0; i < m_segments.size(); i++){
-        dataStream << m_segments.at(i).offset << m_segments.at(i).size;
-        writeCount += 8;
-        writeCount += dataStream.writeRawData(m_segments.at(i).data.data(), m_segments.at(i).data.size());
+    for(int i = 0; i < m_segments.size(); i++)
+    {
+        char bytes[8];
+        quint32toBytes(m_segments.at(i).offset, &bytes[0]);
+        quint32toBytes(m_segments.at(i).size, &bytes[4]);
+        data.append(bytes, 8);
+        data.append(m_segments.at(i).data.data(), m_segments.at(i).data.size());
         checksum = Tools::checksum(m_segments.at(i).data, checksum);
     }
-    for(int i = 0; i < 15 - (writeCount % 16); i++){
-        dataStream.writeRawData("\x00", 1);
+
+    int size = data.size();
+    for(int i = 0; i < 15 - (size % 16); i++){
+        data.append("\x00", 1);
     }
 
-    dataStream << checksum;
+    data.append(checksum);
+    file.write(data.data(), data.size());
     file.close();
+
     return true;
 }
 

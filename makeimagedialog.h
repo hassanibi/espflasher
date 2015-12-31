@@ -15,19 +15,25 @@ class MakeImageDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit MakeImageDialog(QWidget *parent = 0);
+    explicit MakeImageDialog(quint8 flashMode, quint8 flashSizeFreq, QWidget *parent = 0);
     ~MakeImageDialog();
 
 
 private slots:
     void addFileField();
     void setFile();
+    void setELFFile();
+    void setImageFile();
+
+    void elf2Image();
     void makeImage();
     void enableActions(bool enabled = true);
 
 private:
     Ui::MakeImageDialog *ui;
     QList<ImageChooser *> m_filesFields;
+    quint8 m_flashMode;
+    quint8 m_flashSizeFreq;
 };
 
 #endif // MAKEIMAGEDIALOG_H

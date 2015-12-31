@@ -15,17 +15,18 @@ class ELFFile: QObject
 public:
     ELFFile(const QString &name, QObject *parent = 0);
 
-    int getSymbolAddr(const QString &symbole);
-    int getEntryPoint();
+    quint32 getSymbolAddr(const QString &symbole);
+    quint32 getEntryPoint();
 
     QByteArray loadSection(const QString &section);
+    QMap<QString, quint32> symbols() const {return m_symbols; }
 
 private:
     bool fetchSymbols();
 
 private:
     QString m_name;
-    QMap<QString, int> m_symbols;
+    QMap<QString, quint32> m_symbols;
 };
 
 } //namespace ESPFlasher

@@ -134,7 +134,7 @@ public:
 
     static QString versionString()
     {
-        return QObject::tr("ESP Flasher %1%2").arg(QLatin1String("1.0.0")).arg("");
+        return QObject::tr("ESP Flasher %1%2").arg("1.0.0").arg("");
     }
 
     static QString buildCompatibilityString()

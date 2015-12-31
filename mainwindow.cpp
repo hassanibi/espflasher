@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->readMemoryBtn, SIGNAL(clicked(bool)), SLOT(readMemory()));
     connect(ui->writeMemoryBtn, SIGNAL(clicked(bool)), SLOT(writeMemory()));
     connect(ui->makeImageBtn, SIGNAL(clicked(bool)), this, SLOT(makeImage()));
+    connect(ui->runImageBtn, SIGNAL(clicked(bool)), this, SLOT(runImage()));
 
     connect(ui->printMacBtn, SIGNAL(clicked(bool)), SLOT(printMAC()));
     connect(ui->copyMacBtn, SIGNAL(clicked(bool)), SLOT(copyMAC()));
@@ -315,18 +316,18 @@ void MainWindow::writeFlash()
 
         totalWritten += written;
         file.close();
-        ui->logList->addEntry(QString::asprintf("Wrote %d bytes at 0x%08x",  written, address), LogList::Info, seq);
+        ui->logList->addEntry(QString::asprintf("Wrote %d bytes at 0x%08X",  written, address), LogList::Info, seq);
     }
 
     if(flashMode == DIO){
         m_esp->flashUnlockDIO();
     }else{
-        m_esp->flashBegin(0, 0);
-        m_esp->flashFinish(false);
+        //m_esp->flashBegin(0, 0);
+        //m_esp->flashFinish(false);
     }
 
-    QMessageBox::information(this, "", QString("Flash complete! (Wrote %1 bytes).  Unplug and replug your device to contiue.").arg(totalWritten), QMessageBox::Ok);
-    open();//close port
+    QMessageBox::information(this, "", QString("Flash complete! (Wrote %1 bytes).").arg(totalWritten), QMessageBox::Ok);
+    //open();//close port
 }
 
 void MainWindow::readFlash()
@@ -343,7 +344,10 @@ void MainWindow::readFlash()
 
         QFile file(fileName);
         if(file.open(QIODevice::WriteOnly)){
-            file.write(m_esp->flashRead(address, 1024, ESPFlasher::Tools::divRoundup(size, 1024)).mid(0, size));
+            ui->logList->addEntry(QString::asprintf("Reading %d bytes at 0x%08X...",  size, address));
+            QByteArray data = m_esp->flashRead(address, 1024, ESPFlasher::Tools::divRoundup(size, 1024)).mid(0, size);
+            file.write(data);
+            ui->logList->addEntry(QString::asprintf("Reading %d bytes at 0x%08X...done",  data.size(), address), LogList::Info, 1);
             file.close();
         }
     }
@@ -367,7 +371,7 @@ void MainWindow::loadRam()
     ui->logList->addEntry(tr("RAM boot..."));
     for(int i = 0; i < image.segments().size(); i++){
         ESPFlasher::Segment segment = image.segments().at(i);
-        ui->logList->addEntry(QString::asprintf("Downloading %d bytes at %08x...", segment.size, segment.offset), LogList::Info, i);
+        ui->logList->addEntry(QString::asprintf("Downloading %d bytes at %08X...", segment.size, segment.offset), LogList::Info, i);
         m_esp->memBegin(segment.size, ESPFlasher::Tools::divRoundup(segment.size, ESP_RAM_BLOCK), ESP_RAM_BLOCK, segment.offset);
         int seq = 0, pos = 0;
         while(pos < segment.data.size()){
@@ -376,7 +380,7 @@ void MainWindow::loadRam()
             seq++;
         }
     }
-    ui->logList->addEntry(QString::asprintf("All segments done, executing at %08x", image.entryPoint()));
+    ui->logList->addEntry(QString::asprintf("All segments done, executing at %08X", image.entryPoint()));
     m_esp->memFinish(image.entryPoint());
 }
 
@@ -400,7 +404,7 @@ void MainWindow::dumpMemory()
         int k = 0;
         QFile file(fileName);
         if(file.open(QIODevice::WriteOnly)){
-            for(int i = 0; i < size / 4; i++){
+            for(quint32 i = 0; i < size / 4; i++){
                 char bytes[4];
                 quint32 value = m_esp->readReg(address + (i * 4));
                 ESPFlasher::quint32toBytes(value, &bytes[0]);
@@ -426,9 +430,7 @@ void MainWindow::readMemory()
     {
         quint32 address = m_inputDialog->address();
         quint32 value = m_esp->readReg(address);
-        if(value > -1){
-            ui->logList->addEntry(QString::asprintf("0x%08x = 0x%08x", address, value));
-        }
+        ui->logList->addEntry(QString::asprintf("0x%08X = 0x%08X", address, value));
     }
 
     delete m_inputDialog;
@@ -447,7 +449,7 @@ void MainWindow::writeMemory()
         quint32 mask = m_inputDialog->mask();
 
         m_esp->writeReg(address, value, mask, 0);
-        ui->logList->addEntry(QString::asprintf("Wrote 0x%08x, mask 0x%08x to 0x%08x", value, mask, address));
+        ui->logList->addEntry(QString::asprintf("Wrote 0x%08X, mask 0x%08X to 0x%08X", value, mask, address));
     }
 
     delete m_inputDialog;
@@ -455,7 +457,9 @@ void MainWindow::writeMemory()
 
 void MainWindow::makeImage()
 {
-    ESPFlasher::Tools::openDialog (m_makeImageDialog, this);
+    quint8 flashMode = (quint8)ui->spiMode->currentData().toInt();
+    quint8 flashSizeFreq = (quint8)ui->flashSize->currentData().toInt() + (quint8)ui->spiSpeed->currentData().toInt();
+    ESPFlasher::Tools::openDialog (m_makeImageDialog, flashMode, flashSizeFreq, this);
 }
 
 void MainWindow::runImage()
@@ -465,6 +469,7 @@ void MainWindow::runImage()
     }
 
     m_esp->run();
+    ui->logList->addEntry("Image is running on device...");
 }
 
 void MainWindow::importImageList()

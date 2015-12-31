@@ -204,6 +204,9 @@
         <property name="inputMask">
          <string>\0\xhhhhhhhh</string>
         </property>
+        <property name="text">
+         <string>0xFFFFFFFF</string>
+        </property>
        </widget>
       </item>
      </layout>

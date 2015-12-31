@@ -3,7 +3,7 @@
 
 #include <QtGlobal>
 
-const char WRITE_FLASH_PROGRESS[]       = "Writing '%s' at 0x%08x... (%d %%)";
+const char WRITE_FLASH_PROGRESS[]       = "Writing '%s' at 0x%08X... (%d %%)";
 const char LOAD_IMAGE_TITLE[]           = "Load ESP Firmware Image";
 const char EXPORT_SAVE_TITLE[]          = "Export to text file";
 const char IMPORT_OPEN_TITLE[]          = "Import from text file";

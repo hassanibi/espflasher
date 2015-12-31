@@ -7,8 +7,8 @@
 namespace ESPFlasher {
 
 struct Segment {
-    int offset;
-    int size;
+    quint32 offset;
+    quint32 size;
     QByteArray data;
 };
 
@@ -31,8 +31,6 @@ public:
     void addSegment(quint32 addr, QByteArray data);
     bool save(const QString &filename);
 
-    void setEntryPoint(quint32 entryPoint) { m_entryPoint = entryPoint; }
-
     bool isValid() { return m_error == NoError; }
     QString errorText() { return m_errorText; }
 
@@ -41,6 +39,10 @@ public:
     quint8 flashMode() { return m_flashMode; }
     quint8 flashSizeFreq() { return m_flashSizeFreq; }
     quint8 checksum() { return m_checksum; }
+
+    void setEntryPoint(quint32 entrypoint) { m_entryPoint = entrypoint; }
+    void setFlashMode(quint8 flashMode) { m_flashMode = flashMode; }
+    void setFlashSizeFreq(quint8 flashSizeFreq) { m_flashSizeFreq = flashSizeFreq; }
 
 private:
     QList<Segment> m_segments;

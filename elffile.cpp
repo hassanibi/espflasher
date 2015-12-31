@@ -17,7 +17,7 @@ bool ELFFile::fetchSymbols()
     if(!m_symbols.isEmpty())
         return false;
 
-    QString toolNM = "xtensa-lx106-elf-nm";
+    QString toolNM = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-nm";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolNM = "xt-nm";
 
@@ -36,22 +36,22 @@ bool ELFFile::fetchSymbols()
         if(fields.at(0) == "U"){
             continue;
         }
-        m_symbols.insert(fields.at(2), fields.at(0).toInt(0, 16));
+        m_symbols.insert(fields.at(2), fields.at(0).toUInt(0, 16));
     }
 
     return true;
 }
 
-int ELFFile::getSymbolAddr(const QString &symbole)
+quint32 ELFFile::getSymbolAddr(const QString &symbole)
 {
     fetchSymbols();
 
     return m_symbols.value(symbole);
 }
 
-int ELFFile::getEntryPoint()
+quint32 ELFFile::getEntryPoint()
 {
-    QString toolReadELF = "xtensa-lx106-elf-readelf";
+    QString toolReadELF = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-readelf";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolReadELF = "xt-readelf";
 
@@ -68,7 +68,7 @@ int ELFFile::getEntryPoint()
         QByteArray line = readELF->readLine().replace("\n", "").simplified();
         QList<QByteArray> fields = line.split(' ');
         if(fields.at(0) == "Entry"){
-            return fields.at(3).toInt(0, 16);
+            return fields.at(3).toUInt(0, 16);
         }
     }
 
@@ -77,7 +77,7 @@ int ELFFile::getEntryPoint()
 
 QByteArray ELFFile::loadSection(const QString  &section)
 {
-    QString toolObjcopy = "xtensa-lx106-elf-objcopy";
+    QString toolObjcopy = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolObjcopy = "xt-objcopy";
 
