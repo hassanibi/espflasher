@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     hexlineedit.cpp \
     makeimagedialog.cpp \
     versiondialog.cpp \
-    imagefilelistview.cpp
+    imagefilelistview.cpp \
+    preferencesdialog.cpp
 
 HEADERS  += mainwindow.h \
     elffile.h \
@@ -46,17 +47,19 @@ HEADERS  += mainwindow.h \
     makeimagedialog.h \
     versiondialog.h \
     imagefilelistview.h \
-    constants.h
+    constants.h \
+    preferencesdialog.h
 
 FORMS    += mainwindow.ui \
     imagechooser.ui \
     imageinfodialog.ui \
     flashinputdialog.ui \
-    makeimagedialog.ui
+    makeimagedialog.ui \
+    preferencesdialog.ui
 
 RESOURCES += \
     resource.qrc
 
-win32: LIBS += -llibpoppler-qt5.dll
+win32: LIBS += -lpoppler-qt5.dll
 else:unix: LIBS += -lpoppler-qt5
 

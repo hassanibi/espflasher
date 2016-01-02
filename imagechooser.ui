@@ -32,7 +32,7 @@
       </size>
      </property>
      <property name="text">
-      <string>File</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -95,13 +95,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Offset</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="HexLineEdit" name="lineEditOffset">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -119,9 +112,6 @@
       <font>
        <pointsize>12</pointsize>
       </font>
-     </property>
-     <property name="inputMask">
-      <string>\0\xhhhhhhhh</string>
      </property>
      <property name="clearButtonEnabled">
       <bool>true</bool>

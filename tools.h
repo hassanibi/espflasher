@@ -144,6 +144,8 @@ public:
                                                               QString::number(QSysInfo::WordSize));
     }
 
+    static void openSelect (const QString& path);
+
 };
 
 OsType Tools::hostOs()

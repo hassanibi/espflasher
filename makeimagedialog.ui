@@ -99,16 +99,18 @@
               <pointsize>12</pointsize>
              </font>
             </property>
-            <property name="inputMask">
-             <string>\0\xhhhhhhhh</string>
-            </property>
             <property name="maxLength">
-             <number>10</number>
+             <number>32767</number>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="makeImageBtn">
+            <property name="styleSheet">
+             <string notr="true">text-align:left;
+font-weight: bold;
+background-color:rgb(62, 152, 9);</string>
+            </property>
             <property name="text">
              <string>Make Image</string>
             </property>
@@ -159,12 +161,35 @@
          <item row="0" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
-            <widget class="ImageLineEdit" name="elfLineEdit"/>
+            <widget class="ImageLineEdit" name="elfLineEdit">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>40</height>
+              </size>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QToolButton" name="elfBtn">
              <property name="text">
               <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/images/res/images/light/appbar.folder.open.png</normaloff>:/images/res/images/light/appbar.folder.open.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -180,12 +205,35 @@
          <item row="1" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="ImageLineEdit" name="imageLineEdit"/>
+            <widget class="ImageLineEdit" name="imageLineEdit">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>40</height>
+              </size>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QToolButton" name="imageBtn">
              <property name="text">
               <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/images/res/images/light/appbar.folder.open.png</normaloff>:/images/res/images/light/appbar.folder.open.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -210,6 +258,11 @@
          </item>
          <item>
           <widget class="QPushButton" name="elf2ImageBtn">
+           <property name="styleSheet">
+            <string notr="true">text-align:left;
+font-weight: bold;
+background-color:rgb(62, 152, 9);</string>
+           </property>
            <property name="text">
             <string>ELF to Image</string>
            </property>
@@ -240,12 +293,41 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QLabel" name="warn1Label">
+         <property name="styleSheet">
+          <string notr="true">color:red;
+font-style:italic;</string>
+         </property>
+         <property name="text">
+          <string>WARNING: Xtensa toolchain is not in your system PATH!</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="warn2Label">
+         <property name="styleSheet">
+          <string notr="true">color:red;
+font-style:italic;</string>
+         </property>
+         <property name="text">
+          <string>WARNING: Xtensa toolchain path is not set!</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
    </item>
    <item>
-    <widget class="LogList" name="logList"/>
+    <widget class="LogList" name="logList">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>120</height>
+      </size>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -261,6 +343,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>LogList</class>
+   <extends>QListWidget</extends>
+   <header>loglist.h</header>
+  </customwidget>
+  <customwidget>
    <class>HexLineEdit</class>
    <extends>QLineEdit</extends>
    <header>hexlineedit.h</header>
@@ -269,11 +356,6 @@
    <class>ImageLineEdit</class>
    <extends>QLineEdit</extends>
    <header>imagelineedit.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LogList</class>
-   <extends>QListWidget</extends>
-   <header>loglist.h</header>
   </customwidget>
  </customwidgets>
  <resources>

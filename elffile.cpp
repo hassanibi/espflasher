@@ -7,17 +7,19 @@
 namespace ESPFlasher {
 
 
-ELFFile::ELFFile(const QString &name, QObject *parent): QObject(parent),
-    m_name(name)
+ELFFile::ELFFile(const QString &name, const QString &tcPath, QObject *parent):
+    QObject(parent),
+    m_name(name),
+    m_tcPath(tcPath)
 {
 }
 
 bool ELFFile::fetchSymbols()
 {
     if(!m_symbols.isEmpty())
-        return false;
+        return true;
 
-    QString toolNM = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-nm";
+    QString toolNM = m_tcPath + "/xtensa-lx106-elf-nm";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolNM = "xt-nm";
 
@@ -25,6 +27,7 @@ bool ELFFile::fetchSymbols()
     nm->start(toolNM, QStringList() << m_name);
 
     if (!nm->waitForStarted() || !nm->waitForFinished()){
+        emit elfError(QString("Error calling %1, do you have Xtensa toolchain in PATH?").arg(toolNM));
         return false;
     }
 
@@ -51,7 +54,7 @@ quint32 ELFFile::getSymbolAddr(const QString &symbole)
 
 quint32 ELFFile::getEntryPoint()
 {
-    QString toolReadELF = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-readelf";
+    QString toolReadELF = m_tcPath + "/xtensa-lx106-elf-readelf";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolReadELF = "xt-readelf";
 
@@ -59,6 +62,7 @@ quint32 ELFFile::getEntryPoint()
     readELF->start(toolReadELF, QStringList() << "-h" << m_name);
 
     if (!readELF->waitForStarted() || !readELF->waitForFinished()){
+        emit elfError(QString("Error calling %1, do you have Xtensa toolchain in PATH?").arg(toolReadELF));
         return -1;
     }
 
@@ -77,7 +81,7 @@ quint32 ELFFile::getEntryPoint()
 
 QByteArray ELFFile::loadSection(const QString  &section)
 {
-    QString toolObjcopy = "/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy";
+    QString toolObjcopy = m_tcPath + "/xtensa-lx106-elf-objcopy";
     if(qgetenv("XTENSA_CORE") == "lx106")
         toolObjcopy = "xt-objcopy";
 
@@ -88,6 +92,7 @@ QByteArray ELFFile::loadSection(const QString  &section)
         objcopy->start(toolObjcopy, QStringList() << "--only-section" << section << "-Obinary" << m_name << tmpsection.fileName() );
 
         if (!objcopy->waitForStarted() || !objcopy->waitForFinished()){
+            emit elfError(QString("Error calling %1, do you have Xtensa toolchain in PATH?").arg(toolObjcopy));
             return QByteArray();
         }
 

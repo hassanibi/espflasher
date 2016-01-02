@@ -9,8 +9,8 @@ BarcodePrinter::BarcodePrinter(const QString &fileName, QObject *parent) :
     m_printer.setOutputFileName(fileName);
     m_printer.setOutputFormat(QPrinter::PdfFormat);
     m_printer.setColorMode(QPrinter::GrayScale);
-    m_printer.setPageSizeMM(QSizeF(65,22));
-    m_printer.setPaperSize(QSizeF(65,22), QPrinter::Millimeter);
+    m_printer.setPageSizeMM(QSizeF(65,20));
+    m_printer.setPaperSize(QSizeF(65,20), QPrinter::Millimeter);
     m_printer.setResolution(203);
     m_printer.setPageMargins(0,0,0,0, QPrinter::Millimeter);
     m_printer.setOrientation(QPrinter::Portrait);
@@ -22,8 +22,8 @@ void BarcodePrinter::printBarcode(QString barcodeText)
     double MmToDot = 8; //Printer DPI = 203 => 8 dots per mm
     QPainter painter(&m_printer);
 
-    QRect barcodeRect = QRect(2*MmToDot,2*MmToDot,60.5*MmToDot,10*MmToDot);
-    QRect barcodeTextRect = QRect(2*MmToDot,14.5*MmToDot,60.5*MmToDot,5*MmToDot);
+    QRect barcodeRect = QRect(2*MmToDot,2*MmToDot,60.5*MmToDot,8*MmToDot);
+    QRect barcodeTextRect = QRect(2*MmToDot,14.5*MmToDot,60.5*MmToDot,4*MmToDot);
 
     QFont barcodefont = QFont("Code 128", 48, QFont::Normal);
     barcodefont.setLetterSpacing(QFont::AbsoluteSpacing,0.0);

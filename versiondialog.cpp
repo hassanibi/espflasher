@@ -33,7 +33,7 @@ VersionDialog::VersionDialog(QWidget *parent)
         "%3"
         "%4"
         "<br/>"
-        "Copyright %5 %6. All rights reserved.<br/>"
+        "Copyright %5 %6.<br/>"
         "<br/>"
         "The program is provided AS IS with NO WARRANTY OF ANY KIND.<br/>")
         .arg(ESPFlasher::Tools::versionString(),

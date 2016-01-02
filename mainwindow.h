@@ -14,6 +14,7 @@ class FlashInputDialog;
 class MakeImageDialog;
 class ImageChooser;
 class VersionDialog;
+class PreferencesDialog;
 
 
 namespace Ui {
@@ -49,6 +50,8 @@ public:
         WriteMemory
     };
 
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void addFileField();
     void importImageList();
@@ -71,7 +74,11 @@ private slots:
     void espCmdFinished();
     void espError(const QString &errorText);
 
+    void openPreferences();
     void openAbout();
+
+    void decToHex(int value);
+    void hexToDec(int value);
 
 private:
     void fillComboBoxes();
@@ -85,6 +92,7 @@ private:
     QPointer<FlashInputDialog> m_inputDialog;
     QPointer<MakeImageDialog> m_makeImageDialog;
     QPointer<VersionDialog> m_aboutDialog;
+    QPointer<PreferencesDialog> m_preferencesDialog;
     Action m_currentAction;
     QString m_workingDir;
 

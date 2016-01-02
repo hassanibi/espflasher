@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QSettings>
 
 struct ESPFlasherQuery {
     QString portName;
@@ -122,6 +123,8 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser, ESPFlasherQu
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    QApplication::setOrganizationName("espflasher");
+    QCoreApplication::setOrganizationDomain("espflasher.ccom");
     QApplication::setApplicationName("espflasher");
     QApplication::setApplicationVersion("1.0.0");
 
@@ -159,25 +162,31 @@ int main(int argc, char *argv[])
         QFontDatabase::addApplicationFont(":/fonts/code128.ttf");
         qApp->setStyle(QStyleFactory::create("fusion"));
 
-        QPalette darkPalette;
-        darkPalette.setColor(QPalette::Window, QColor(53,53,53));
-        darkPalette.setColor(QPalette::WindowText, Qt::white);
-        darkPalette.setColor(QPalette::Base, QColor(25,25,25));
-        darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
-        darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-        darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-        darkPalette.setColor(QPalette::Text, Qt::white);
-        darkPalette.setColor(QPalette::Button, QColor(53,53,53));
-        darkPalette.setColor(QPalette::ButtonText, Qt::white);
-        darkPalette.setColor(QPalette::BrightText, Qt::red);
-        darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+        QSettings settings;
+        bool useDarkTheme = settings.value("useDarkTheme", false).toBool();
 
-        darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-        darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+        if(useDarkTheme)
+        {
+            QPalette darkPalette;
+            darkPalette.setColor(QPalette::Window, QColor(53,53,53));
+            darkPalette.setColor(QPalette::WindowText, Qt::white);
+            darkPalette.setColor(QPalette::Base, QColor(25,25,25));
+            darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
+            darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+            darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+            darkPalette.setColor(QPalette::Active, QPalette::Text, Qt::white);
+            darkPalette.setColor(QPalette::Disabled, QPalette::Text, Qt::darkGray);
+            darkPalette.setColor(QPalette::Button, QColor(53,53,53));
+            darkPalette.setColor(QPalette::Active, QPalette::ButtonText, Qt::white);
+            darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::darkGray);
+            darkPalette.setColor(QPalette::BrightText, Qt::red);
+            darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+            darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+            darkPalette.setColor(QPalette::HighlightedText, Qt::black);
 
-        qApp->setPalette(darkPalette);
-
-        qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+            qApp->setPalette(darkPalette);
+            qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+        }
 
         MainWindow w;
         w.show();

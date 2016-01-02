@@ -5,7 +5,7 @@
 
 LogList::LogList(QWidget *parent) : QListWidget(parent)
 {
-
+    setStyleSheet("background-color:rgb(0, 0, 0)");
 }
 
 void LogList::addEntry(const QString &str, LogLevel level, int currentRow)

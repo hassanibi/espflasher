@@ -25,6 +25,8 @@ private slots:
     void setELFFile();
     void setImageFile();
 
+    void onElfError(const QString &errorText);
+
     void elf2Image();
     void makeImage();
     void enableActions(bool enabled = true);

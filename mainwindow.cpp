@@ -10,6 +10,7 @@
 #include "barcodeprinter.h"
 #include "makeimagedialog.h"
 #include "versiondialog.h"
+#include "preferencesdialog.h"
 
 #include <poppler/qt5/poppler-qt5.h>
 
@@ -24,6 +25,8 @@
 #include <QFile>
 #include <QPrintDialog>
 #include <QMessageBox>
+#include <QSettings>
+#include <QDesktopServices>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,12 +39,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QSettings settings;
+    restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    restoreState(settings.value("mainWindowState").toByteArray());
+
     fillComboBoxes();
 
     connect(m_esp, SIGNAL(commandStarted(ESPCommand)), this, SLOT(espCmdStarted()));
     connect(m_esp, SIGNAL(commandFinished(ESPCommand)), this, SLOT(espCmdFinished()));
     connect(m_esp, SIGNAL(commandError(QString)), this, SLOT(espError(QString)));
-
     connect(ui->actionImport_image_file_list, SIGNAL(triggered(bool)), this, SLOT(importImageList()));
     connect(ui->actionExport_image_file_list, SIGNAL(triggered(bool)), this, SLOT(exportImageList()));
     connect(ui->openBtn, SIGNAL(clicked(bool)), this, SLOT(open()));
@@ -53,11 +59,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->writeMemoryBtn, SIGNAL(clicked(bool)), SLOT(writeMemory()));
     connect(ui->makeImageBtn, SIGNAL(clicked(bool)), this, SLOT(makeImage()));
     connect(ui->runImageBtn, SIGNAL(clicked(bool)), this, SLOT(runImage()));
-
     connect(ui->printMacBtn, SIGNAL(clicked(bool)), SLOT(printMAC()));
     connect(ui->copyMacBtn, SIGNAL(clicked(bool)), SLOT(copyMAC()));
-
+    connect(ui->actionPreferences, SIGNAL(triggered(bool)), this, SLOT(openPreferences()));
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
+    connect(ui->actionExit, SIGNAL (triggered ()), qApp, SLOT (quit ()));
+
+    connect(ui->decSB, SIGNAL(valueChanged(int)), this, SLOT(decToHex(int)));
+    connect(ui->hexSB, SIGNAL(valueChanged(int)), this, SLOT(hexToDec(int)));
+
+    ui->hexSB->setRange(0, 0x7FFFFFFF);
+    ui->decSB->setRange(0, 0x7FFFFFFF);
 
     for(int i = 0; i < 4; i++){
         addFileField();
@@ -72,6 +84,21 @@ MainWindow::~MainWindow()
 {
     delete m_esp;
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    settings.setValue("mainWindowGeometry", saveGeometry());
+    settings.setValue("mainWindowState", saveState());
+
+    event->accept();
+}
+
+
+void MainWindow::openPreferences()
+{
+    ESPFlasher::Tools::openDialog (m_preferencesDialog, this);
 }
 
 void MainWindow::openAbout()
@@ -92,6 +119,7 @@ void MainWindow::fillComboBoxes()
     for(int i = 0; i < availablePorts.size(); i++){
         ui->serialPort->addItem(availablePorts.at(i).portName(), availablePorts.at(i).systemLocation());
     }
+    ui->openBtn->setEnabled(!availablePorts.isEmpty());
 
     static QList<qint32> standardBaudRates = QSerialPortInfo::standardBaudRates();
     for(int i = 0; i < standardBaudRates.size(); i++){
@@ -128,7 +156,7 @@ void MainWindow::fillComboBoxes()
 
 void MainWindow::enableActions()
 {
-    bool deviceConnected = m_esp->isOpen();
+    bool deviceConnected = m_esp->isPortOpen();
     ui->writeFlashBtn->setEnabled(deviceConnected);
     ui->readFlashBtn->setEnabled(deviceConnected);
     ui->readMemoryBtn->setEnabled(deviceConnected);
@@ -137,16 +165,21 @@ void MainWindow::enableActions()
     ui->runImageBtn->setEnabled(deviceConnected);
     ui->loadRamBtn->setEnabled(deviceConnected);
     ui->eraseFlashBtn->setEnabled(deviceConnected);
+
     ui->macAddressGroup->setEnabled(deviceConnected);
+    ui->printMacBtn->setVisible(deviceConnected);
+    ui->copyMacBtn->setVisible(deviceConnected);
+    ui->macBarcodeLabel->setVisible(deviceConnected);
 
     ui->openBtn->setText(deviceConnected ? tr("Disconnect") : tr("Connect"));
 }
 
 void MainWindow::open()
 {
-    if(m_esp->isOpen()){
-        m_esp->close();
+    if(m_esp->isPortOpen()){
+        m_esp->closePort();
         enableActions();
+        ui->logList->addEntry("Disconnected from ESP8266.", LogList::Warning);
         return;
     }
 
@@ -156,10 +189,10 @@ void MainWindow::open()
     setCursor(Qt::WaitCursor);
 
     int tries = 0;
-    while (tries++ < 20) {
-        if(m_esp->open()){
-            displayMAC();
-            ui->logList->addEntry(QString("Connected to %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
+    while (tries++ < 10) {
+        if(m_esp->openPort()){
+            ui->logList->addEntry(QString("Connected to ESP8266 on %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
+             displayMAC();
             break;
         }
         QCoreApplication::processEvents();
@@ -169,14 +202,14 @@ void MainWindow::open()
     setCursor(Qt::ArrowCursor);
     enableActions();
 
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         ui->logList->addEntry("Failed to connect to ESP8266", LogList::Error);
     }
 }
 
 void MainWindow::displayMAC()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -207,7 +240,7 @@ void MainWindow::displayMAC()
 
 void MainWindow::printMAC()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -244,14 +277,14 @@ void MainWindow::printMAC()
 
 void MainWindow::copyMAC()
 {
-    if(m_esp->isOpen()){
+    if(m_esp->isPortOpen()){
         QApplication::clipboard()->setText(m_esp->macAddress());
     }
 }
 
 void MainWindow::writeFlash()
 {  
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -332,7 +365,7 @@ void MainWindow::writeFlash()
 
 void MainWindow::readFlash()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -357,7 +390,7 @@ void MainWindow::readFlash()
 
 void MainWindow::loadRam()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -387,7 +420,7 @@ void MainWindow::loadRam()
 void MainWindow::dumpMemory()
 {
 
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -422,7 +455,7 @@ void MainWindow::dumpMemory()
 
 void MainWindow::readMemory()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -438,7 +471,7 @@ void MainWindow::readMemory()
 
 void MainWindow::writeMemory()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -464,7 +497,7 @@ void MainWindow::makeImage()
 
 void MainWindow::runImage()
 {
-    if(!m_esp->isOpen()){
+    if(!m_esp->isPortOpen()){
         return;
     }
 
@@ -555,3 +588,14 @@ void MainWindow::espError(const QString &errorText)
     ui->logList->addEntry(QString("A fatal error occurred: %1").arg(errorText), LogList::Error);
     espCmdFinished();
 }
+
+void MainWindow::decToHex(int value)
+{
+    ui->hexSB->setValue(value);
+}
+
+void MainWindow::hexToDec(int value)
+{
+    ui->decSB->setValue(value);
+}
+

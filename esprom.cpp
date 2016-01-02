@@ -8,45 +8,45 @@
 namespace ESPFlasher {
 
 ESPRom::ESPRom(QObject *parent):
-    QObject(parent),
-    m_serialPort(new QSerialPort(this)),
-    m_waitTimeout(500)
+    QSerialPort(parent),
+    m_waitTimeout(500),
+    m_isSync(false),
+    m_flashID(0)
 {
 
 }
 
 ESPRom::ESPRom(const QString &portName, const QSerialPort::BaudRate baudRate, QObject *parent) :
-    QObject(parent),
-    m_waitTimeout(500)
+    QSerialPort(parent),
+    m_waitTimeout(500),
+    m_isSync(false),
+    m_flashID(0)
 {
-    m_serialPort = new QSerialPort(this);
-    m_serialPort->setPortName(portName);
-    m_serialPort->setBaudRate(baudRate);
+    setPortName(portName);
+    setBaudRate(baudRate);
 
-    connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(readData()));
-    connect(m_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this,
+    connect(this, SIGNAL(readyRead()), this, SLOT(readData()));
+    connect(this, SIGNAL(error(QSerialPort::SerialPortError)), this,
             SLOT(handleSerialError(QSerialPort::SerialPortError)));
 }
 
 ESPRom::~ESPRom()
 {
-    if (m_serialPort->isOpen())
-        m_serialPort->close();
-
-    delete m_serialPort;
+    if (isOpen())
+        close();
 }
 
-bool ESPRom::open()
+bool ESPRom::openPort()
 {
-    if(m_serialPort->isOpen())
+    if(isPortOpen())
         return true;
 
-    m_serialPort->setDataBits(QSerialPort::Data8);
-    m_serialPort->setParity(QSerialPort::NoParity);
-    m_serialPort->setStopBits(QSerialPort::OneStop);
-    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    setDataBits(QSerialPort::Data8);
+    setParity(QSerialPort::NoParity);
+    setStopBits(QSerialPort::OneStop);
+    setFlowControl(QSerialPort::NoFlowControl);
 
-    if (m_serialPort->open(QIODevice::ReadWrite)) {
+    if (open(QIODevice::ReadWrite)) {
         return sync();
     }
 
@@ -54,11 +54,22 @@ bool ESPRom::open()
 }
 
 
-void ESPRom::close()
+void ESPRom::closePort()
 {
-    if(m_serialPort->isOpen()){
-        m_serialPort->close();
+    if(isOpen()){
+        m_isSync = false;
+        close();
     }
+}
+
+qint64	ESPRom::readData(char * data, qint64 maxSize)
+{
+    return QSerialPort::readData(data, maxSize);
+}
+
+qint64	ESPRom::writeData(const char * data, qint64 maxSize)
+{
+    return QSerialPort::writeData(data, maxSize);
 }
 
 void ESPRom::handleSerialError(QSerialPort::SerialPortError error)
@@ -69,20 +80,15 @@ void ESPRom::handleSerialError(QSerialPort::SerialPortError error)
     }
 
     if(error != QSerialPort::NoError){
-        emit commandError(m_serialPort->errorString());
+        emit commandError(errorString());
     }
-}
-
-void ESPRom::readData()
-{
-    //TODO: async serial
 }
 
 QByteArray ESPRom::readBytes(int size)
 {
-    m_serialPort->waitForReadyRead(10);
+    waitForReadyRead(10);
 
-    return m_serialPort->read(size);
+    return read(size);
 }
 
 QByteArray ESPRom::readAndEscape(int size)
@@ -91,13 +97,13 @@ QByteArray ESPRom::readAndEscape(int size)
     QByteArray data;
     while((data.size() < size))
     {
-        m_serialPort->waitForReadyRead(10);
+        waitForReadyRead(10);
 
         char buffer[1];
-        readCount += m_serialPort->read(buffer, 1);
+        readCount += read(buffer, 1);
         if (buffer[0] == '\xdb')
         {
-            readCount += m_serialPort->read(buffer, 1);
+            readCount += read(buffer, 1);
             if (buffer[0] == '\xdc')
                 data.append('\xc0');
             else if (buffer[0] == '\xdd')
@@ -115,11 +121,11 @@ QByteArray ESPRom::readAndEscape(int size)
     return data;
 }
 
-void ESPRom::write(QByteArray data)
+void ESPRom::writeToPort(QByteArray data)
 {
     QByteArray buf = "\xc0" + (data.replace("\xdb","\xdb\xdd").replace("\xc0","\xdb\xdc")) + "\xc0";
-    m_serialPort->write(buf.data(), buf.size());
-    if (!m_serialPort->waitForBytesWritten(m_waitTimeout)) {
+    write(buf.data(), buf.size());
+    if (!waitForBytesWritten(m_waitTimeout)) {
         qDebug() << "Wait write response timeout";
         return;
     }
@@ -162,9 +168,9 @@ CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 si
         buffer.append(chkBytes, 4);
         buffer.append(data, size);
 
-        write(buffer);
+        writeToPort(buffer);
 
-        if(m_serialPort->waitForReadyRead(m_waitTimeout)){
+        if(waitForReadyRead(m_waitTimeout)){
             //TODO:
         }
     }
@@ -223,16 +229,17 @@ bool ESPRom::sync()
         packet.append("\x55", 1);
     }
 
-    if(!sendCommand(Sync, packet).isValid()){
-        m_serialPort->close();
-        return false;
+    if(sendCommand(Sync, packet).isValid()){
+        for(int i = 0; i < 8; i++){
+            sendCommand();
+        }
+        m_isSync = true;
+        return true;
     }
 
-    for(int i = 0; i < 8; i++){
-        sendCommand();
-    }
+    close();
 
-    return true;
+    return false;
 }
 
 quint32 ESPRom::readReg(quint32 addr)
@@ -241,7 +248,6 @@ quint32 ESPRom::readReg(quint32 addr)
     quint32toBytes(addr, bytes);
 
     CommandResponse response = sendCommand(ReadReg, bytes, 4);
-
     if(!response.isValid()){
         emit commandError("Failed to read target memory");
         return 0x0;
@@ -444,7 +450,10 @@ QByteArray ESPRom::flashRead(quint32 offset, quint32 size, quint32 count)
         return QByteArray();
     }
 
-    while(!m_serialPort->waitForReadyRead(m_waitTimeout));
+    int tries = 10;
+    while(!waitForReadyRead(m_waitTimeout) && tries > 0){
+        tries--;
+    }
 
     emit commandStarted();
 
@@ -456,6 +465,7 @@ QByteArray ESPRom::flashRead(quint32 offset, quint32 size, quint32 count)
         }
 
         data += readAndEscape(size);
+        emit flashReadProgress((100 * (i+1))/(float)count);
 
         if(readBytes(1) != QByteArray("\xc0", 1)){
             emit commandError("Invalid end of packet (sflash read)");

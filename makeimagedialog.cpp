@@ -6,6 +6,7 @@
 
 #include <QFile>
 #include <QFileDialog>
+#include <QSettings>
 #include <QDebug>
 
 MakeImageDialog::MakeImageDialog(quint8 flashMode, quint8 flashSizeFreq, QWidget *parent) :
@@ -19,9 +20,17 @@ MakeImageDialog::MakeImageDialog(quint8 flashMode, quint8 flashSizeFreq, QWidget
     connect(ui->makeImageBtn, SIGNAL(clicked(bool)), this, SLOT(makeImage()));
     connect(ui->elf2ImageBtn, SIGNAL(clicked(bool)), this, SLOT(elf2Image()));
     connect(ui->outputFileBtn, SIGNAL(clicked(bool)), this, SLOT(setFile()));
-
     connect(ui->elfBtn, SIGNAL(clicked(bool)), this, SLOT(setELFFile()));
     connect(ui->imageBtn, SIGNAL(clicked(bool)), this, SLOT(setImageFile()));
+
+    QSettings settings;
+    bool useSysPath = settings.value("useSystemPATH").toBool();
+    QString tcPath = settings.value("tcPath").toString();
+    QString sysPATH = QString::fromLocal8Bit(qgetenv("PATH").data()).toLower();
+
+    ui->warn1Label->setVisible(useSysPath && !sysPATH.contains("xtensa"));
+    ui->warn2Label->setVisible(!useSysPath && tcPath.isEmpty());
+
 
     for(int i = 0; i < 4; i++){
         addFileField();
@@ -46,7 +55,7 @@ void MakeImageDialog::addFileField()
 {
     if(m_filesFields.size() < 5)
     {
-        ImageChooser *fileField = new ImageChooser(true, ui->filesGroup);
+        ImageChooser *fileField = new ImageChooser(false, ui->filesGroup);
         m_filesFields.append(fileField);
         ui->verticalLayoutFG->addWidget(fileField);
     }
@@ -90,13 +99,19 @@ void MakeImageDialog::elf2Image()
         return;
     }
 
+    QSettings settings;
+    bool useSysPath = settings.value("useSystemPATH").toBool();
+    QString tcPath = useSysPath ? "" : settings.value("tcPath").toString();
+
     enableActions(false);
     ESPFlasher::ESPFirmwareImage image;
-    ESPFlasher::ELFFile elfFile(elfFilename);
+    ESPFlasher::ELFFile elfFile(elfFilename, tcPath);
     QList<QString> sections;
     QList<QString> starts;
     sections << ".text" << ".data" << ".rodata";
     starts << "_text_start" << "_data_start" << "_rodata_start";
+
+    connect(&elfFile, SIGNAL(elfError(QString)), this, SLOT(onElfError(QString)));
 
     image.setEntryPoint(elfFile.getEntryPoint());
     image.setFlashMode(m_flashMode);
@@ -153,4 +168,9 @@ void MakeImageDialog::makeImage()
     image.save(filename);
 
     enableActions(true);
+}
+
+void MakeImageDialog::onElfError(const QString &errorText)
+{
+    ui->logList->addEntry(errorText, LogList::Error);
 }
