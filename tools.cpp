@@ -16,7 +16,7 @@ Tools::Tools()
 #undef HAVE_OPEN_SELECT
 #if defined (Q_OS_WIN)
 # define HAVE_OPEN_SELECT
-static void Tools::openSelect (const QString& path)
+void Tools::openSelect (const QString& path)
 {
   const QString explorer = QLatin1String ("explorer");
   QString param;
@@ -27,7 +27,7 @@ static void Tools::openSelect (const QString& path)
 }
 #elif defined (Q_OS_MAC)
 # define HAVE_OPEN_SELECT
-static void Tools::openSelect (const QString& path)
+void Tools::openSelect (const QString& path)
 {
   QStringList scriptArgs;
   scriptArgs << QLatin1String ("-e")

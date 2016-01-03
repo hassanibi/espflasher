@@ -15,8 +15,8 @@ class ELFFile: public QObject
 public:
     ELFFile(const QString &name, const QString &tcPath, QObject *parent = 0);
 
-    quint32 getSymbolAddr(const QString &symbole);
-    quint32 getEntryPoint();
+    quint32 getSymbolAddr(const QString &symbole, bool *ok = 0);
+    quint32 getEntryPoint(bool *ok = 0);
 
     QByteArray loadSection(const QString &section);
     QMap<QString, quint32> symbols() const {return m_symbols; }

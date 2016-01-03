@@ -113,16 +113,27 @@ void MakeImageDialog::elf2Image()
 
     connect(&elfFile, SIGNAL(elfError(QString)), this, SLOT(onElfError(QString)));
 
-    image.setEntryPoint(elfFile.getEntryPoint());
+    bool ok;
+    quint32 entryPoint = elfFile.getEntryPoint(&ok);
+    if(!ok)
+        return;
+
+    image.setEntryPoint(entryPoint);
     image.setFlashMode(m_flashMode);
     image.setFlashSizeFreq(m_flashSizeFreq);
 
     for(int i = 0; i < sections.size(); i++)
     {
-        quint32 address = elfFile.getSymbolAddr(starts.at(i));
+        bool ok;
+        quint32 address = elfFile.getSymbolAddr(starts.at(i), &ok);
+        if(!ok)
+            break;
         QByteArray data = elfFile.loadSection(sections.at(i));
         image.addSegment(address, data);
-        ui->logList->addEntry(QString("Section %1 (%2 bytes at 0x%3)").arg(sections.at(i)).arg(data.size()).arg(address, 1, 16));
+        ui->logList->addEntry(QString("Section %1 (%2 bytes at 0x%3)")
+                              .arg(sections.at(i))
+                              .arg(data.size())
+                              .arg(address, 1, 16));
     }
 
     QFileInfo fileInfo(imageFileame);
@@ -132,12 +143,14 @@ void MakeImageDialog::elf2Image()
     QByteArray data = elfFile.loadSection(".irom0.text");
     quint32 off = elfFile.getSymbolAddr("_irom0_text_start") - 0x40200000;
     QFile file(fileInfo.path() + QString::asprintf("/0x%05x.bin", off));
-    if(file.open(QIODevice::WriteOnly)){
+    if(file.open(QIODevice::WriteOnly))
+    {
         file.write(data.data(), data.size());
         file.close();
+        ui->logList->addEntry(QString("Section .irom0.text (%1 bytes at 0x%2)")
+                              .arg(data.size())
+                              .arg(off + 0x40200000, 1, 16));
     }
-
-    ui->logList->addEntry(QString("Section .irom0.text (%1 bytes at 0x%2)").arg(data.size()).arg(off + 0x40200000, 1, 16));
 }
 
 void MakeImageDialog::makeImage()
@@ -157,8 +170,11 @@ void MakeImageDialog::makeImage()
         if(m_filesFields.at(i)->isValid()){
             QFile file(m_filesFields.at(i)->filename());
             if(file.open(QIODevice::ReadOnly)){
-                image.addSegment(m_filesFields.at(i)->offset(), file.readAll());
+                QByteArray data = file.readAll();
+                quint32 offset = m_filesFields.at(i)->offset();
+                image.addSegment(offset, data);
                 file.close();
+                ui->logList->addEntry(QString("Writing %1 bytes at 0x%2").arg(data.size()).arg(offset, 1, 16));
             }
             m_filesFields.at(i)->setProgress(100);
         }
@@ -166,6 +182,10 @@ void MakeImageDialog::makeImage()
 
     image.setEntryPoint(entryPoint);
     image.save(filename);
+
+    ESPFlasher::ESPFirmwareImage testImg(filename);
+    if(!testImg.isValid())
+        ui->logList->addEntry(testImg.errorText(), LogList::Error);
 
     enableActions(true);
 }

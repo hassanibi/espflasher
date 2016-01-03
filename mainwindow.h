@@ -60,6 +60,7 @@ private slots:
     void open();
     void writeFlash();
     void readFlash();
+    void eraseFlash();
     void loadRam();
     void dumpMemory();
     void readMemory();
@@ -76,9 +77,6 @@ private slots:
 
     void openPreferences();
     void openAbout();
-
-    void decToHex(int value);
-    void hexToDec(int value);
 
 private:
     void fillComboBoxes();

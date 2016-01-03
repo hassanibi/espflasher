@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->openBtn, SIGNAL(clicked(bool)), this, SLOT(open()));
     connect(ui->writeFlashBtn, SIGNAL(clicked(bool)), SLOT(writeFlash()));
     connect(ui->readFlashBtn, SIGNAL(clicked(bool)), SLOT(readFlash()));
+    connect(ui->eraseFlashBtn, SIGNAL(clicked(bool)), this, SLOT(eraseFlash()));
     connect(ui->loadRamBtn, SIGNAL(clicked(bool)), SLOT(loadRam()));
     connect(ui->dumpMemoryBtn, SIGNAL(clicked(bool)), SLOT(dumpMemory()));
     connect(ui->readMemoryBtn, SIGNAL(clicked(bool)), SLOT(readMemory()));
@@ -64,12 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPreferences, SIGNAL(triggered(bool)), this, SLOT(openPreferences()));
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
     connect(ui->actionExit, SIGNAL (triggered ()), qApp, SLOT (quit ()));
-
-    connect(ui->decSB, SIGNAL(valueChanged(int)), this, SLOT(decToHex(int)));
-    connect(ui->hexSB, SIGNAL(valueChanged(int)), this, SLOT(hexToDec(int)));
-
-    ui->hexSB->setRange(0, 0x7FFFFFFF);
-    ui->decSB->setRange(0, 0x7FFFFFFF);
 
     for(int i = 0; i < 4; i++){
         addFileField();
@@ -192,7 +187,7 @@ void MainWindow::open()
     while (tries++ < 10) {
         if(m_esp->openPort()){
             ui->logList->addEntry(QString("Connected to ESP8266 on %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
-             displayMAC();
+            displayMAC();
             break;
         }
         QCoreApplication::processEvents();
@@ -203,7 +198,10 @@ void MainWindow::open()
     enableActions();
 
     if(!m_esp->isPortOpen()){
-        ui->logList->addEntry("Failed to connect to ESP8266", LogList::Error);
+        QString msg = "Failed to connect to ESP8266\n" \
+                      "Make sure that GPIO0 and GPIO15 are connected to low-level(ground), GPIO2 and CH_PD are connected\n"\
+                      "to high-level(power source) And reboot device(reconnect power or connect RST pin to ground for a second).";
+        ui->logList->addEntry(msg, LogList::Error);
     }
 }
 
@@ -354,13 +352,9 @@ void MainWindow::writeFlash()
 
     if(flashMode == DIO){
         m_esp->flashUnlockDIO();
-    }else{
-        //m_esp->flashBegin(0, 0);
-        //m_esp->flashFinish(false);
     }
 
     QMessageBox::information(this, "", QString("Flash complete! (Wrote %1 bytes).").arg(totalWritten), QMessageBox::Ok);
-    //open();//close port
 }
 
 void MainWindow::readFlash()
@@ -386,6 +380,14 @@ void MainWindow::readFlash()
     }
 
     delete m_inputDialog;
+}
+
+void MainWindow::eraseFlash()
+{
+    if(m_esp->isPortOpen() && m_esp->flashErase())
+    {
+        ui->logList->addEntry("Flash content deleted.", LogList::Warning);
+    }
 }
 
 void MainWindow::loadRam()
@@ -589,13 +591,6 @@ void MainWindow::espError(const QString &errorText)
     espCmdFinished();
 }
 
-void MainWindow::decToHex(int value)
-{
-    ui->hexSB->setValue(value);
-}
 
-void MainWindow::hexToDec(int value)
-{
-    ui->decSB->setValue(value);
-}
+
 

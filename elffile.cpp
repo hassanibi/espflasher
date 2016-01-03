@@ -45,14 +45,16 @@ bool ELFFile::fetchSymbols()
     return true;
 }
 
-quint32 ELFFile::getSymbolAddr(const QString &symbole)
+quint32 ELFFile::getSymbolAddr(const QString &symbole, bool *ok)
 {
-    fetchSymbols();
+    bool ret = fetchSymbols();
+    if(ok)
+        *ok = ret;
 
     return m_symbols.value(symbole);
 }
 
-quint32 ELFFile::getEntryPoint()
+quint32 ELFFile::getEntryPoint(bool *ok)
 {
     QString toolReadELF = m_tcPath + "/xtensa-lx106-elf-readelf";
     if(qgetenv("XTENSA_CORE") == "lx106")
@@ -63,7 +65,9 @@ quint32 ELFFile::getEntryPoint()
 
     if (!readELF->waitForStarted() || !readELF->waitForFinished()){
         emit elfError(QString("Error calling %1, do you have Xtensa toolchain in PATH?").arg(toolReadELF));
-        return -1;
+        if(ok)
+            *ok = false;
+        return 0;
     }
 
     readELF->setReadChannel(QProcess::StandardOutput);
@@ -72,10 +76,14 @@ quint32 ELFFile::getEntryPoint()
         QByteArray line = readELF->readLine().replace("\n", "").simplified();
         QList<QByteArray> fields = line.split(' ');
         if(fields.at(0) == "Entry"){
+            if(ok)
+                *ok = true;
             return fields.at(3).toUInt(0, 16);
         }
     }
 
+    if(ok)
+        *ok = true;
     return true;
 }
 
