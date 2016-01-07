@@ -72,7 +72,7 @@ void MakeImageDialog::setFile()
 
 void MakeImageDialog::setELFFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Save to Image"), QDir::currentPath(), tr("Binary Files (*.*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("ELF file"), QDir::currentPath(), tr("Binary Files (*.*)"));
 
     if(!fileName.isEmpty()){
         ui->elfLineEdit->setText(fileName);
@@ -81,10 +81,11 @@ void MakeImageDialog::setELFFile()
 
 void MakeImageDialog::setImageFile()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save to Image"), QDir::currentPath(), tr("Binary Files (*.bin)"));
+    QString dirPath = QFileDialog::getExistingDirectory(this, tr("Image path"), QDir::currentPath(), QFileDialog::ShowDirsOnly
+                                                         | QFileDialog::DontResolveSymlinks);
 
-    if(!fileName.isEmpty()){
-        ui->imageLineEdit->setText(fileName);
+    if(!dirPath.isEmpty()){
+        ui->imageLineEdit->setText(dirPath);
     }
 }
 
@@ -93,9 +94,9 @@ void MakeImageDialog::elf2Image()
     ui->logList->clear();
 
     QString elfFilename = ui->elfLineEdit->text();
-    QString imageFileame = ui->imageLineEdit->text();
+    QString imagePath = ui->imageLineEdit->text();
 
-    if(elfFilename.isEmpty() || imageFileame.isEmpty()){
+    if(elfFilename.isEmpty() || imagePath.isEmpty()){
         return;
     }
 
@@ -136,13 +137,12 @@ void MakeImageDialog::elf2Image()
                               .arg(address, 1, 16));
     }
 
-    QFileInfo fileInfo(imageFileame);
-
-    image.save(fileInfo.path() + "/0x00000.bin");
+    image.save(QDir(imagePath).filePath("0x00000.bin"));
 
     QByteArray data = elfFile.loadSection(".irom0.text");
     quint32 off = elfFile.getSymbolAddr("_irom0_text_start") - 0x40200000;
-    QFile file(fileInfo.path() + QString::asprintf("/0x%05x.bin", off));
+    QFile file( QDir(imagePath).filePath(QString::asprintf("0x%05x.bin", off)));
+
     if(file.open(QIODevice::WriteOnly))
     {
         file.write(data.data(), data.size());
@@ -151,6 +151,8 @@ void MakeImageDialog::elf2Image()
                               .arg(data.size())
                               .arg(off + 0x40200000, 1, 16));
     }
+
+    enableActions(true);
 }
 
 void MakeImageDialog::makeImage()

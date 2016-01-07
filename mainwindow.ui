@@ -189,6 +189,13 @@ background-color:rgb(62, 152, 9);</string>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <widget class="QLabel" name="macBarcodeLabel">
+               <property name="font">
+                <font>
+                 <pointsize>20</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
                <property name="text">
                 <string/>
                </property>

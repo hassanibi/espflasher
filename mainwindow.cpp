@@ -60,11 +60,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->writeMemoryBtn, SIGNAL(clicked(bool)), SLOT(writeMemory()));
     connect(ui->makeImageBtn, SIGNAL(clicked(bool)), this, SLOT(makeImage()));
     connect(ui->runImageBtn, SIGNAL(clicked(bool)), this, SLOT(runImage()));
-    connect(ui->printMacBtn, SIGNAL(clicked(bool)), SLOT(printMAC()));
     connect(ui->copyMacBtn, SIGNAL(clicked(bool)), SLOT(copyMAC()));
     connect(ui->actionPreferences, SIGNAL(triggered(bool)), this, SLOT(openPreferences()));
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
     connect(ui->actionExit, SIGNAL (triggered ()), qApp, SLOT (quit ()));
+
+#ifdef WITH_POPPLER_QT5
+    connect(ui->printMacBtn, SIGNAL(clicked(bool)), SLOT(printMAC()));
+#else
+    ui->printMacBtn->setVisible(false);
+#endif
 
     for(int i = 0; i < 4; i++){
         addFileField();
@@ -162,7 +167,9 @@ void MainWindow::enableActions()
     ui->eraseFlashBtn->setEnabled(deviceConnected);
 
     ui->macAddressGroup->setEnabled(deviceConnected);
+#ifdef WITH_POPPLER_QT5
     ui->printMacBtn->setVisible(deviceConnected);
+#endif
     ui->copyMacBtn->setVisible(deviceConnected);
     ui->macBarcodeLabel->setVisible(deviceConnected);
 
@@ -212,6 +219,7 @@ void MainWindow::displayMAC()
     }
 
     QString macAddress =  m_esp->macAddress().toUpper();
+#ifdef WITH_POPPLER_QT5
     QString filename(macAddress +".pdf");
     BarcodePrinter *printer = new BarcodePrinter(filename);
     printer->printBarcode(macAddress);
@@ -234,8 +242,12 @@ void MainWindow::displayMAC()
         }
         delete document;
     }
+#else
+    ui->macBarcodeLabel->setText(macAddress);
+#endif
 }
 
+#ifdef WITH_POPPLER_QT5
 void MainWindow::printMAC()
 {
     if(!m_esp->isPortOpen()){
@@ -272,6 +284,7 @@ void MainWindow::printMAC()
         }
     }
 }
+#endif
 
 void MainWindow::copyMAC()
 {

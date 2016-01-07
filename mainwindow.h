@@ -22,7 +22,7 @@ class MainWindow;
 }
 
 namespace ESPFlasher {
-    class ESPRom;
+class ESPRom;
 }
 
 class MainWindow : public QMainWindow
@@ -68,7 +68,9 @@ private slots:
     void makeImage();
     void runImage();
 
+#ifdef WITH_POPPLER_QT5
     void printMAC();
+#endif
     void copyMAC();
 
     void espCmdStarted();

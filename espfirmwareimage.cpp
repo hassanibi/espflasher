@@ -95,6 +95,7 @@ void ESPFirmwareImage::addSegment(quint32 addr, QByteArray data)
 bool ESPFirmwareImage::save(const QString &filename)
 {
     QFile file(filename);
+
     if(!file.open(QIODevice::WriteOnly)){
         return false;
     }

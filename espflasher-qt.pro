@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+
+
 QT       += core gui serialport printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -13,6 +15,7 @@ CONFIG += c++11
 TARGET = espflasher
 TEMPLATE = app
 
+DEFINES += WITH_POPPLER_QT5
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -60,6 +63,8 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resource.qrc
 
-win32: LIBS += -lpoppler-qt5.dll
-else:unix: LIBS += -lpoppler-qt5
+contains (DEFINES, WITH_POPPLER_QT5) {
+    win32: LIBS += -lpoppler-qt5.dll
+    else:unix: LIBS += -lpoppler-qt5
+}
 
