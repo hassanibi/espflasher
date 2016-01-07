@@ -1,9 +1,6 @@
 # ESPFlasher
 An open source and cross platform firmware programmer for ESP8266 chip.
 
-## Screenshots
-![Alt text](res/screenshots/2015-12-27_19:45:49.png?raw=true)
-![Alt text](res/screenshots/2015-12-27_19:53:09.png?raw=true)
 ## Features
 - Write an image to flash.
 - Read SPI flash content.
@@ -19,6 +16,14 @@ An open source and cross platform firmware programmer for ESP8266 chip.
 - Read SPI flash manufacturer and device ID.
 - Perform Chip Erase on SPI flash.
 - Import/Export images list to text file.
+
+## Screenshots
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:40:23.png?raw=true)
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:41:00.png?raw=true)
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:42:13.png?raw=true)
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:43:54.png?raw=true)
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:44:17.png?raw=true)
+![Alt text](res/screenshots/Screenshot from 2016-01-06 08:45:50.png?raw=true)
 
 ## Installation / dependencies
 ESPFlasher is created with [Qt 5](http://www.qt.io/) and depends on [Poppler Qt5](http://poppler.freedesktop.org/) for barcode PDF generation and printing.
