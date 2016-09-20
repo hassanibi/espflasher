@@ -11,16 +11,18 @@ ESPRom::ESPRom(QObject *parent):
     QSerialPort(parent),
     m_waitTimeout(500),
     m_isSync(false),
-    m_flashID(0)
+    m_flashID(0),
+    m_resetMode(1)
 {
 
 }
 
-ESPRom::ESPRom(const QString &portName, const QSerialPort::BaudRate baudRate, QObject *parent) :
+ESPRom::ESPRom(const QString &portName, const QSerialPort::BaudRate baudRate, int resetMode, QObject *parent) :
     QSerialPort(parent),
     m_waitTimeout(500),
     m_isSync(false),
-    m_flashID(0)
+    m_flashID(0),
+    m_resetMode(resetMode)
 {
     setPortName(portName);
     setBaudRate(baudRate);
@@ -46,13 +48,98 @@ bool ESPRom::openPort()
     setStopBits(QSerialPort::OneStop);
     setFlowControl(QSerialPort::NoFlowControl);
 
+
     if (open(QIODevice::ReadWrite)) {
-        return sync();
+
+        for(int i = 0; i < 4; i++){
+
+            resetDevice(m_resetMode);
+
+            for(int i = 0; i < 4; i++){
+                if(sync()){
+                    return true;
+                }
+            }
+        }
     }
 
     return false;
 }
 
+void ESPRom::resetDevice(int mode)
+{
+    switch (static_cast<ResetMode>(mode))
+    {
+    case Auto:
+        setDataTerminalReady(false);
+        setRequestToSend(true);
+        QThread::msleep(1);
+
+        setDataTerminalReady(true);
+        QThread::msleep(1);
+
+        setDataTerminalReady(false);
+        QThread::msleep(100);
+
+        setRequestToSend(false);
+
+        break;
+
+    case CK:
+        setDataTerminalReady(true);
+        setRequestToSend(true);
+        QThread::msleep(5);
+
+        setRequestToSend(false);
+        QThread::msleep(75);
+
+        setDataTerminalReady(false);
+
+        break;
+
+    case Wifio:
+
+        break;
+
+    case NodeMCU:
+        setDataTerminalReady(false);
+        setRequestToSend(true);
+        QThread::msleep(5);
+
+        setDataTerminalReady(true);
+        setRequestToSend(false);
+        QThread::msleep(75);
+
+        setRequestToSend(true);
+
+        break;
+
+    case DTROnly:
+        break;
+
+    default:
+        break;
+    }
+}
+
+bool ESPRom::sync()
+{
+
+    QByteArray packet("\x07\x07\x12\x20");
+    for(int i = 0; i < 32; i++){
+        packet.append("\x55", 1);
+    }
+
+    if(sendCommand(Sync, packet).isValid()){
+        for(int i = 0; i < 8; i++){
+            sendCommand();
+        }
+        m_isSync = true;
+        return true;
+    }
+
+    return false;
+}
 
 void ESPRom::closePort()
 {
@@ -88,7 +175,9 @@ QByteArray ESPRom::readBytes(int size)
 {
     waitForReadyRead(10);
 
-    return read(size);
+    QByteArray bytes = read(size);
+
+    return bytes;
 }
 
 QByteArray ESPRom::readAndEscape(int size)
@@ -126,7 +215,7 @@ void ESPRom::writeToPort(QByteArray data)
     QByteArray buf = "\xc0" + (data.replace("\xdb","\xdb\xdd").replace("\xc0","\xdb\xdc")) + "\xc0";
     write(buf.data(), buf.size());
     if (!waitForBytesWritten(m_waitTimeout)) {
-        qDebug() << "Wait write response timeout";
+        //qDebug() << "Wait write response timeout";
         return;
     }
 }
@@ -179,6 +268,7 @@ CommandResponse ESPRom::sendCommand(ESPCommand cmd, const char *data, quint16 si
     CommandResponse response;
     while (retries > 0){
         response = receiveResponse();
+
         if(cmd == NoCommand || response.cmd == (quint8)cmd){
             emit commandFinished(cmd);
             return response;
@@ -220,26 +310,6 @@ CommandResponse ESPRom::receiveResponse()
     }
 
     return response;
-}
-
-bool ESPRom::sync()
-{
-    QByteArray packet("\x07\x07\x12\x20");
-    for(int i = 0; i < 32; i++){
-        packet.append("\x55", 1);
-    }
-
-    if(sendCommand(Sync, packet).isValid()){
-        for(int i = 0; i < 8; i++){
-            sendCommand();
-        }
-        m_isSync = true;
-        return true;
-    }
-
-    close();
-
-    return false;
 }
 
 quint32 ESPRom::readReg(quint32 addr)
@@ -444,9 +514,9 @@ QByteArray ESPRom::flashRead(quint32 offset, quint32 size, quint32 count)
     stub.append(SFLASH_STUB, 60);
 
     if(!flashBegin(0, 0) ||
-        !memBegin(stub.size(), 1, stub.size(), 0x40100000) ||
-        !memBlock(stub, 0) ||
-        !memFinish(0x4010001c)){
+            !memBegin(stub.size(), 1, stub.size(), 0x40100000) ||
+            !memBlock(stub, 0) ||
+            !memFinish(0x4010001c)){
         return QByteArray();
     }
 

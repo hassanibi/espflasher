@@ -49,8 +49,16 @@ class ESPRom : public QSerialPort
     Q_OBJECT
 public:
     explicit ESPRom(QObject *parent = 0);
-    explicit ESPRom(const QString &portName, const QSerialPort::BaudRate baudRate = QSerialPort::Baud115200, QObject *parent = 0);
+    explicit ESPRom(const QString &portName, const QSerialPort::BaudRate baudRate = QSerialPort::Baud115200, int resetMode = 1, QObject *parent = 0);
     ~ESPRom();
+
+    enum ResetMode {
+        Auto = 1,
+        CK,
+        Wifio,
+        NodeMCU,
+        DTROnly
+    };
 
     enum ESPCommand {
         NoCommand = 0x00,
@@ -69,6 +77,8 @@ public:
         setPortName(portName);
         setBaudRate(baudRate);
     }
+
+    void setResetMode(int resetMode) { m_resetMode = resetMode; }
 
     CommandResponse sendCommand(ESPCommand cmd, const char *data, quint16 size, quint32 chk = 0);
     CommandResponse sendCommand(ESPCommand cmd = NoCommand, const QByteArray &data = QByteArray(), quint32 chk = 0);
@@ -130,6 +140,7 @@ private slots:
     void handleSerialError(QSerialPort::SerialPortError error);
 
 private:
+    void resetDevice(int mode = Auto);
     bool sync();
     QByteArray readAndEscape(int size = 1);
     QByteArray readBytes(int size = 1);
@@ -141,6 +152,7 @@ private:
     int m_waitTimeout;
     bool m_isSync;
     quint32 m_flashID;
+    int m_resetMode;
 };
 
 } //namespace ESPFlasher

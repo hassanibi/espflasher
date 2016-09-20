@@ -5,7 +5,7 @@
 
 LogList::LogList(QWidget *parent) : QListWidget(parent)
 {
-    setStyleSheet("background-color:rgb(0, 0, 0)");
+    //setStyleSheet("background-color:rgb(0, 0, 0)");
 }
 
 void LogList::addEntry(const QString &str, LogLevel level, int currentRow)
@@ -31,20 +31,20 @@ void LogList::addEntry(const QString &str, LogLevel level, int currentRow)
 
         switch (level) {
         case Info:
-            it->setForeground(Qt::white); break;
+            it->setForeground(Qt::black); break;
         case Warning:
-            it->setForeground(Qt::yellow); break;
+            it->setForeground(Qt::darkYellow); break;
         case Error:
-            it->setForeground(Qt::red); break;
+            it->setForeground(Qt::darkRed); break;
         default:
             break;
         }
 
         QString timeTxt = i == 0 ? QDateTime::currentDateTime().toString("hh:mm:ss") : "         ";
 
-        font.setBold(true);
+        //font.setBold(true);
         it->setFont(font);
-        it->setText(QString("%1 %3").arg(timeTxt).arg(lines.at(i)));
+        it->setText(QString(" %1").arg(lines.at(i)));
     }
 
     scrollToBottom();

@@ -130,6 +130,15 @@ void MainWindow::fillComboBoxes()
     }
     ui->baudRate->setCurrentText(QString::number(QSerialPort::Baud115200));
 
+    QList<QString> resetModes;
+    QList<int> resetModesData;
+    resetModes << "Auto" << "CK" << "Wifio" << "NodeMCU" << "DTROnly";
+    resetModesData << 1 << 2 << 3 << 4 << 5;
+    for(int i = 0; i < resetModes.size(); i++){
+        ui->resetMode->addItem(resetModes.at(i), resetModesData.at(i));
+    }
+    ui->resetMode->setCurrentIndex(0);
+
     QList<QString> modes;
     QList<int> modesData;
     modes << "QIO" << "QOUT" << "DIO" << "DOUT";
@@ -154,6 +163,7 @@ void MainWindow::fillComboBoxes()
         ui->spiSpeed->addItem(QString("%1 Mhz").arg(speeds.at(i)), speedsData.at(i));
     }
     ui->spiSpeed->setCurrentIndex(2);
+
 }
 
 void MainWindow::enableActions()
@@ -188,6 +198,7 @@ void MainWindow::open()
     }
 
     m_esp->setSerialPort(ui->serialPort->currentData().toString(), (QSerialPort::BaudRate)ui->baudRate->currentData().toInt());
+    m_esp->setResetMode(ui->resetMode->currentData().toInt());
 
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);
