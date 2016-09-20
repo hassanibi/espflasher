@@ -63,6 +63,10 @@ bool ESPRom::openPort()
         }
     }
 
+    if(!m_isSync){
+        closePort();
+    }
+
     return false;
 }
 

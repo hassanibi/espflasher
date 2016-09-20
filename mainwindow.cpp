@@ -203,6 +203,8 @@ void MainWindow::open()
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);
 
+    ui->logList->addEntry(QString("Connecting..."));
+
     int tries = 0;
     while (tries++ < 10) {
         if(m_esp->openPort()){
