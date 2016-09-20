@@ -94,6 +94,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("mainWindowGeometry", saveGeometry());
     settings.setValue("mainWindowState", saveState());
 
+    settings.setValue("baudRate", ui->baudRate->currentIndex());
+    settings.setValue("resetMode", ui->resetMode->currentIndex());
+    settings.setValue("spiMode", ui->spiMode->currentIndex());
+    settings.setValue("spiSpeed", ui->spiSpeed->currentIndex());
+    settings.setValue("flashSize", ui->flashSize->currentIndex());
+
+
     event->accept();
 }
 
@@ -117,6 +124,8 @@ void MainWindow::addFileField()
 
 void MainWindow::fillComboBoxes()
 {
+    QSettings settings;
+
     QList<QSerialPortInfo>	availablePorts = QSerialPortInfo::availablePorts();
     for(int i = 0; i < availablePorts.size(); i++){
         ui->serialPort->addItem(availablePorts.at(i).portName(), availablePorts.at(i).systemLocation());
@@ -128,7 +137,7 @@ void MainWindow::fillComboBoxes()
         if(standardBaudRates.at(i) > 9599 && standardBaudRates.at(i) < 115201)
             ui->baudRate->addItem(QString::number(standardBaudRates.at(i)), standardBaudRates.at(i));
     }
-    ui->baudRate->setCurrentText(QString::number(QSerialPort::Baud115200));
+    ui->baudRate->setCurrentIndex(settings.value("baudRate", standardBaudRates.size() - 1).toInt());
 
     QList<QString> resetModes;
     QList<int> resetModesData;
@@ -137,32 +146,35 @@ void MainWindow::fillComboBoxes()
     for(int i = 0; i < resetModes.size(); i++){
         ui->resetMode->addItem(resetModes.at(i), resetModesData.at(i));
     }
-    ui->resetMode->setCurrentIndex(0);
+    ui->resetMode->setCurrentIndex(settings.value("resetMode", 0).toInt());
 
     QList<QString> modes;
     QList<int> modesData;
-    modes << "QIO" << "QOUT" << "DIO" << "DOUT";
+    modes << "QIO (default)" << "QOUT" << "DIO" << "DOUT";
     modesData << 0 << 1 << 2 << 3;
     for(int i = 0; i < modes.size(); i++){
         ui->spiMode->addItem(modes.at(i), modesData.at(i));
     }
-    ui->spiMode->setCurrentIndex(0);
 
-    QList<int> sizes, sizesData;
-    sizes << 2 << 4 << 8 << 16 << 32;
+    ui->spiMode->setCurrentIndex(settings.value("spiMode", 0).toInt());
+
+    QList<QString> sizes;
+    QList<int> sizesData;
+    sizes << "2 MBit" << "4 MBit (default)" << "8 MBit" << "16 MBit" << "32 MBit";
     sizesData << 0x10 << 0x00 << 0x20 << 0x30 << 0x40;
     for(int i = 0; i < sizes.size(); i++){
-        ui->flashSize->addItem(QString("%1 MBit").arg(sizes.at(i)), sizesData.at(i));
+        ui->flashSize->addItem(sizes.at(i), sizesData.at(i));
     }
-    ui->flashSize->setCurrentIndex(1);
+    ui->flashSize->setCurrentIndex(settings.value("flashSize", 1).toInt());
 
-    QList<int> speeds, speedsData;
-    speeds << 20 << 26 << 40 << 80;
+    QList<QString> speeds;
+    QList<int> speedsData;
+    speeds << "20 Mhz" << "26 Mhz" << "40 Mhz (default)" << "80 Mhz";
     speedsData << 2 << 1 << 0 << 0xf;
     for(int i = 0; i < speeds.size(); i++){
-        ui->spiSpeed->addItem(QString("%1 Mhz").arg(speeds.at(i)), speedsData.at(i));
+        ui->spiSpeed->addItem(speeds.at(i), speedsData.at(i));
     }
-    ui->spiSpeed->setCurrentIndex(2);
+    ui->spiSpeed->setCurrentIndex(settings.value("spiSpeed", 2).toInt());
 
 }
 
@@ -193,7 +205,7 @@ void MainWindow::open()
     if(m_esp->isPortOpen()){
         m_esp->closePort();
         enableActions();
-        ui->logList->addEntry("Disconnected from ESP8266.", LogList::Warning);
+        ui->logList->addEntry(tr("Disconnected from ESP8266."), LogList::Warning);
         return;
     }
 
@@ -203,12 +215,15 @@ void MainWindow::open()
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);
 
-    ui->logList->addEntry(QString("Connecting..."));
+    ui->openBtn->setText(tr("Connecting..."));
+    ui->logList->addEntry(tr("Connecting..."));
+
+    QApplication::processEvents();
 
     int tries = 0;
-    while (tries++ < 10) {
+    while (tries++ < 3) {
         if(m_esp->openPort()){
-            ui->logList->addEntry(QString("Connected to ESP8266 on %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
+            ui->logList->addEntry(tr("Connected to ESP8266 on %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
             displayMAC();
             break;
         }
@@ -249,9 +264,9 @@ void MainWindow::displayMAC()
     if (document && !document->isLocked()) {
         Poppler::Page* pdfPage = document->page(0);
         if (pdfPage) {
-            QImage image = pdfPage->renderToImage(100.0, 100.0);
+            QImage image = pdfPage->renderToImage(300.0, 300.0);
             if (!image.isNull()) {
-                ui->macBarcodeLabel->setPixmap(QPixmap::fromImage(image));
+                ui->macBarcodeLabel->setPixmap(QPixmap::fromImage(image).scaledToHeight(70));
             }
             delete pdfPage;
         }
@@ -282,12 +297,12 @@ void MainWindow::printMAC()
         if (document && !document->isLocked()) {
             Poppler::Page* pdfPage = document->page(0);
             if (pdfPage) {
-                QImage image = pdfPage->renderToImage(100.0, 100.0);
+                QImage image = pdfPage->renderToImage(300.0, 300.0);
                 if (!image.isNull()) {
                     QPainter painter(&printer);
                     for(int i = 0; i < 3; i++)
                         for(int j = 0; j < 11; j++){
-                            painter.drawImage(QPoint(255 * i, 100 * j),image);
+                            painter.drawImage(QPoint(255 * i, 100 * j),image.scaled(250, 90));
                             painter.drawRect(255 * i, 100 * j, 250, 90);
                         }
 

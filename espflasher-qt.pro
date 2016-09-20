@@ -15,7 +15,7 @@ CONFIG += c++11
 TARGET = espflasher
 TEMPLATE = app
 
-#DEFINES += WITH_POPPLER_QT5
+DEFINES += WITH_POPPLER_QT5
 
 SOURCES += main.cpp\
         mainwindow.cpp \

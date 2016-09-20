@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>752</width>
-    <height>607</height>
+    <width>693</width>
+    <height>502</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -126,14 +126,14 @@ background-color:rgb(62, 152, 9);</string>
               </item>
              </layout>
             </item>
-            <item row="1" column="0">
+            <item row="2" column="0">
              <widget class="QLabel" name="label_5">
               <property name="text">
                <string>SPI Flash mode:</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="QComboBox" name="spiMode">
               <property name="minimumSize">
                <size>
@@ -149,14 +149,14 @@ background-color:rgb(62, 152, 9);</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="label_6">
               <property name="text">
                <string>SPI Flash size:</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="QComboBox" name="flashSize">
               <property name="minimumSize">
                <size>
@@ -172,14 +172,14 @@ background-color:rgb(62, 152, 9);</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label_4">
               <property name="text">
                <string>SPI Flash speed:</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QComboBox" name="spiSpeed">
               <property name="minimumSize">
                <size>
@@ -194,6 +194,19 @@ background-color:rgb(62, 152, 9);</string>
                </size>
               </property>
              </widget>
+            </item>
+            <item row="1" column="1">
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -663,7 +676,7 @@ font-weight:bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>752</width>
+     <width>693</width>
      <height>19</height>
     </rect>
    </property>

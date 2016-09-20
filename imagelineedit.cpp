@@ -93,7 +93,7 @@ void ImageLineEdit::paintEvent(QPaintEvent * event)
     if(!hasFocus() && m_progress <= 100)
     {
         QPen oldPen = painter.pen();
-        painter.setBrush(Qt::darkGreen);
+        painter.setBrush(Qt::green);
         painter.setPen(Qt::transparent);
         int mid = (backgroundRect.width() / 100.0) * m_progress;
         QRect progressRect(backgroundRect.x(), backgroundRect.y(), mid, backgroundRect.height());

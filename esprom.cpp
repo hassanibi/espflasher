@@ -102,6 +102,16 @@ void ESPRom::resetDevice(int mode)
         break;
 
     case Wifio:
+        setDataTerminalReady(false);
+        setDataTerminalReady(true);
+        QThread::msleep(5);
+
+        setDataTerminalReady(false);
+
+        setBreakEnabled(true);
+        QThread::msleep(250);
+        setBreakEnabled(false);
+        QThread::msleep(250);
 
         break;
 
@@ -119,6 +129,9 @@ void ESPRom::resetDevice(int mode)
         break;
 
     case DTROnly:
+        setDataTerminalReady(true);
+        QThread::msleep(100);
+        setDataTerminalReady(false);
         break;
 
     default:
