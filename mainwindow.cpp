@@ -12,7 +12,9 @@
 #include "versiondialog.h"
 #include "preferencesdialog.h"
 
+#ifdef WITH_POPPLER_QT5
 #include <poppler/qt5/poppler-qt5.h>
+#endif
 
 #include <QDebug>
 #include <QSerialPort>
