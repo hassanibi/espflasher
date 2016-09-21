@@ -134,6 +134,8 @@ void ESPRom::resetDevice(int mode)
         setDataTerminalReady(false);
         break;
 
+    case None:
+        break;
     default:
         break;
     }

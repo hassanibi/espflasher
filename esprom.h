@@ -53,7 +53,8 @@ public:
     ~ESPRom();
 
     enum ResetMode {
-        Auto = 1,
+        None = 1,
+        Auto,
         CK,
         Wifio,
         NodeMCU,

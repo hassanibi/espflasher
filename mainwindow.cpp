@@ -172,8 +172,8 @@ void MainWindow::fillComboBoxes()
 
     QList<QString> resetModes;
     QList<int> resetModesData;
-    resetModes << "Auto" << "CK" << "Wifio" << "NodeMCU" << "DTROnly";
-    resetModesData << 1 << 2 << 3 << 4 << 5;
+    resetModes << "None" << "Auto" << "CK" << "Wifio" << "NodeMCU" << "DTROnly";
+    resetModesData << 1 << 2 << 3 << 4 << 5 << 6;
     for(int i = 0; i < resetModes.size(); i++){
         ui->resetMode->addItem(resetModes.at(i), resetModesData.at(i));
     }

@@ -17,6 +17,17 @@ An open source and cross platform firmware programmer for ESP8266 chip.
 - Perform Chip Erase on SPI flash.
 - Import/Export images list to text file.
 
+Supported reset modes
+--------------------
+
+Name       | Description
+-----------|-------------
+none       | No DTR/RTS manipulation.
+Auto       | DTR controls RST via a capacitor, RTS pulls down GPIO0.
+CK         | RTS pulls down reset, DTR pulls down GPIO0.
+Wifio      | DTR controls RST via a capacitor, TxD controls GPIO0 via a diode (or PNP).
+Nodemcu    | DTR and RTS control GPIO0 and RST via NPN transistors.
+
 ## Installation / dependencies
 ESPFlasher is created with [Qt 5](http://www.qt.io/) and depends on [Poppler Qt5](http://poppler.freedesktop.org/) for barcode PDF generation and printing.
 ## About
