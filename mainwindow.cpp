@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QDesktopServices>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -67,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
     connect(ui->actionExit, SIGNAL (triggered ()), qApp, SLOT (quit ()));
 
+
 #ifdef WITH_POPPLER_QT5
     connect(ui->printMacBtn, SIGNAL(clicked(bool)), SLOT(printMAC()));
 #else
@@ -79,12 +81,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     enableActions();
 
-    ui->logList->addEntry(QLatin1String("Ready."));
+    m_scanTimer = new QTimer(this);
+    connect(m_scanTimer,SIGNAL(timeout()),this,SLOT(scanSerialPorts()));
+    m_scanTimer->start(1000);
 }
 
 MainWindow::~MainWindow()
 {
     delete m_esp;
+    delete m_scanTimer;
     delete ui;
 }
 
@@ -120,6 +125,32 @@ void MainWindow::addFileField()
     ImageChooser *fileField = new ImageChooser(false, ui->filesTab);
     m_filesFields.append(fileField);
     ui->verticalLayoutFT->addWidget(fileField);
+}
+
+void MainWindow::scanSerialPorts()
+{
+    int index = ui->serialPort->currentIndex();
+    QString serialPort = ui->serialPort->currentData().toString();
+    bool disconnected = true;
+
+    ui->serialPort->clear();
+
+    QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
+    foreach (const QSerialPortInfo &info, availablePorts) {
+        ui->serialPort->addItem(info.portName(), info.systemLocation());
+        if(info.systemLocation() == serialPort){
+            disconnected = false;
+        }
+    }
+
+    if(disconnected && m_esp->isPortOpen()){
+        m_esp->closePort();
+        enableActions();
+        ui->logList->addEntry(tr("Disconnected from ESP8266."), LogList::Warning);
+        return;
+    }
+
+    ui->serialPort->setCurrentIndex(index > -1  ?index : 0);
 }
 
 void MainWindow::fillComboBoxes()
@@ -552,8 +583,10 @@ void MainWindow::runImage()
 
 void MainWindow::importImageList()
 {
+    QSettings settings;
+
     QString fileName = QFileDialog::getOpenFileName(this, tr("Import from text file"),
-                                                    QDir::currentPath(), tr("Text Files (*.txt)"));
+                                                    settings.value("workingDir", QDir::currentPath()).toString(), tr("Text Files (*.txt)"));
     if(fileName.isEmpty()){
         return;
     }
@@ -575,12 +608,15 @@ void MainWindow::importImageList()
         file.close();
         ui->tabWidget->setCurrentIndex(1);
     }
+
+    settings.setValue("workingDir", QFileInfo(fileName).absolutePath());
 }
 
 void MainWindow::exportImageList()
 {
+    QSettings settings;
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export to text file"),
-                                                    QDir::currentPath(), tr("Text Files (*.txt)"));
+                                                    settings.value("workingDir", QDir::currentPath()).toString(), tr("Text Files (*.txt)"));
     if(fileName.isEmpty()){
         return;
     }
@@ -596,6 +632,8 @@ void MainWindow::exportImageList()
         }
         file.close();
     }
+
+    settings.setValue("workingDir", QFileInfo(fileName).absolutePath());
 }
 
 void MainWindow::espCmdStarted()

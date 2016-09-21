@@ -4,6 +4,8 @@
 #include "tools.h"
 
 #include <QFileDialog>
+#include <QSettings>
+#include <QFileInfo>
 
 ImageChooser::ImageChooser(bool enabled, QWidget *parent) :
     QWidget(parent),
@@ -38,13 +40,19 @@ void ImageChooser::filenameChnaged(const QString &filename)
 
 void ImageChooser::setFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(), tr("Binary Files (*.bin)"));
+    QSettings settings;
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open Image"),
+                                                    settings.value("workingDir", QDir::currentPath()).toString(),
+                                                    tr("Binary Files (*.bin)"));
 
     if(!fileName.isEmpty()){
         ui->checkBox->setChecked(true);
         ui->lineEditOffset->setEnabled(true);
         ui->lineEditFile->setEnabled(true);
         ui->lineEditFile->setText(fileName);
+
+        settings.setValue("workingDir", QFileInfo(fileName).absolutePath());
     }
 }
 

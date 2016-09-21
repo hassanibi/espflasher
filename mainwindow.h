@@ -9,6 +9,7 @@ class QLineEdit;
 class QToolButton;
 class QCheckBox;
 class QLabel;
+class QTimer;
 
 class FlashInputDialog;
 class MakeImageDialog;
@@ -57,6 +58,8 @@ private slots:
     void importImageList();
     void exportImageList();
 
+    void scanSerialPorts();
+
     void open();
     void writeFlash();
     void readFlash();
@@ -95,6 +98,7 @@ private:
     QPointer<PreferencesDialog> m_preferencesDialog;
     Action m_currentAction;
     QString m_workingDir;
+    QTimer *m_scanTimer;
 
 };
 
