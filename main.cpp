@@ -123,8 +123,8 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser, ESPFlasherQu
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QApplication::setOrganizationName("espflasher");
-    QCoreApplication::setOrganizationDomain("espflasher.ccom");
+    QApplication::setOrganizationName("hibiapps");
+    QCoreApplication::setOrganizationDomain("hibiapps.com");
     QApplication::setApplicationName("espflasher");
     QApplication::setApplicationVersion("1.0.0");
 
@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
     else
     {
         QFontDatabase::addApplicationFont(":/fonts/code128.ttf");
+
         qApp->setStyle(QStyleFactory::create("fusion"));
 
         QSettings settings;

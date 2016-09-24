@@ -135,6 +135,8 @@ void MainWindow::scanSerialPorts()
 
     ui->serialPort->clear();
 
+    ui->serialPort->addItem("-- Port --", "");
+
     QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
     foreach (const QSerialPortInfo &info, availablePorts) {
         ui->serialPort->addItem(info.portName(), info.systemLocation());
@@ -157,11 +159,14 @@ void MainWindow::fillComboBoxes()
 {
     QSettings settings;
 
+    ui->serialPort->addItem("-- Port --", "");
     QList<QSerialPortInfo>	availablePorts = QSerialPortInfo::availablePorts();
     for(int i = 0; i < availablePorts.size(); i++){
         ui->serialPort->addItem(availablePorts.at(i).portName(), availablePorts.at(i).systemLocation());
     }
     ui->openBtn->setEnabled(!availablePorts.isEmpty());
+
+    ui->baudRate->addItem("-- Baud rate --", 0);
 
     static QList<qint32> standardBaudRates = QSerialPortInfo::standardBaudRates();
     for(int i = 0; i < standardBaudRates.size(); i++){
@@ -170,10 +175,13 @@ void MainWindow::fillComboBoxes()
     }
     ui->baudRate->setCurrentIndex(settings.value("baudRate", standardBaudRates.size() - 1).toInt());
 
+
+    ui->resetMode->addItem("-- Reset mode --", "");
+
     QList<QString> resetModes;
     QList<int> resetModesData;
     resetModes << "None" << "Auto" << "CK" << "Wifio" << "NodeMCU" << "DTROnly";
-    resetModesData << 1 << 2 << 3 << 4 << 5 << 6;
+    resetModesData << 0 << 1 << 2 << 3 << 4 << 5;
     for(int i = 0; i < resetModes.size(); i++){
         ui->resetMode->addItem(resetModes.at(i), resetModesData.at(i));
     }
@@ -240,8 +248,16 @@ void MainWindow::open()
         return;
     }
 
-    m_esp->setSerialPort(ui->serialPort->currentData().toString(), (QSerialPort::BaudRate)ui->baudRate->currentData().toInt());
-    m_esp->setResetMode(ui->resetMode->currentData().toInt());
+    QString serialPort = ui->serialPort->currentData().toString();
+    int baudRate = ui->baudRate->currentData().toInt();
+    int resetMode = ui->resetMode->currentData().toInt();
+
+    if(serialPort.isEmpty() || baudRate == 0 || resetMode == 0){
+        return;
+    }
+
+    m_esp->setSerialPort(serialPort, (QSerialPort::BaudRate)baudRate);
+    m_esp->setResetMode(resetMode);
 
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);

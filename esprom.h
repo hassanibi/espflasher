@@ -53,12 +53,12 @@ public:
     ~ESPRom();
 
     enum ResetMode {
-        None = 1,
-        Auto,
-        CK,
-        Wifio,
-        NodeMCU,
-        DTROnly
+        None = -1,
+        Auto = 0,
+        CK = 1,
+        Wifio = 2,
+        NodeMCU = 3,
+        DTROnly = 4
     };
 
     enum ESPCommand {
