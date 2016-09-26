@@ -71,6 +71,8 @@ private slots:
     void makeImage();
     void runImage();
 
+    void deviceSettingsChanged();
+
 #ifdef WITH_POPPLER_QT5
     void printMAC();
 #endif

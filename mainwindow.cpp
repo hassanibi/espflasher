@@ -67,6 +67,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPreferences, SIGNAL(triggered(bool)), this, SLOT(openPreferences()));
     connect(ui->actionAbout, SIGNAL(triggered(bool)), this, SLOT(openAbout()));
     connect(ui->actionExit, SIGNAL (triggered ()), qApp, SLOT (quit ()));
+    connect(ui->serialPort, SIGNAL(currentIndexChanged(int)), SLOT(deviceSettingsChanged()));
+    connect(ui->baudRate, SIGNAL(currentIndexChanged(int)), SLOT(deviceSettingsChanged()));
+    connect(ui->resetMode, SIGNAL(currentIndexChanged(int)), SLOT(deviceSettingsChanged()));
+
 
 
 #ifdef WITH_POPPLER_QT5
@@ -99,6 +103,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("mainWindowGeometry", saveGeometry());
     settings.setValue("mainWindowState", saveState());
 
+    settings.setValue("serialPort", ui->serialPort->currentText());
     settings.setValue("baudRate", ui->baudRate->currentIndex());
     settings.setValue("resetMode", ui->resetMode->currentIndex());
     settings.setValue("spiMode", ui->spiMode->currentIndex());
@@ -129,7 +134,10 @@ void MainWindow::addFileField()
 
 void MainWindow::scanSerialPorts()
 {
+    QSettings settings;
+
     int index = ui->serialPort->currentIndex();
+    QString currentPort = ui->serialPort->currentText();
     QString serialPort = ui->serialPort->currentData().toString();
     bool disconnected = true;
 
@@ -152,7 +160,16 @@ void MainWindow::scanSerialPorts()
         return;
     }
 
-    ui->serialPort->setCurrentIndex(index > -1  ?index : 0);
+    ui->serialPort->setCurrentText(index > -1 ? currentPort : settings.value("serialPort", "").toString());
+}
+
+void MainWindow::deviceSettingsChanged()
+{
+
+    ui->openBtn->setEnabled(
+                ui->serialPort->currentIndex() > 0
+                && ui->baudRate->currentIndex() > 0
+                && ui->resetMode->currentIndex() > 0);
 }
 
 void MainWindow::fillComboBoxes()
@@ -164,6 +181,8 @@ void MainWindow::fillComboBoxes()
     for(int i = 0; i < availablePorts.size(); i++){
         ui->serialPort->addItem(availablePorts.at(i).portName(), availablePorts.at(i).systemLocation());
     }
+    ui->serialPort->setCurrentText(settings.value("serialPort", "").toString());
+
     ui->openBtn->setEnabled(!availablePorts.isEmpty());
 
     ui->baudRate->addItem("-- Baud rate --", 0);
@@ -236,7 +255,7 @@ void MainWindow::enableActions()
     ui->copyMacBtn->setVisible(deviceConnected);
     ui->macBarcodeLabel->setVisible(deviceConnected);
 
-    ui->openBtn->setText(deviceConnected ? tr("Disconnect") : tr("Connect"));
+    ui->openBtn->setText(deviceConnected ? tr("Close") : tr("Open"));
 }
 
 void MainWindow::open()
@@ -262,19 +281,13 @@ void MainWindow::open()
     ui->openBtn->setEnabled(false);
     setCursor(Qt::WaitCursor);
 
-    ui->openBtn->setText(tr("Connecting..."));
     ui->logList->addEntry(tr("Connecting..."));
 
     QApplication::processEvents();
 
-    int tries = 0;
-    while (tries++ < 3) {
-        if(m_esp->openPort()){
-            ui->logList->addEntry(tr("Connected to ESP8266 on %1 (%2 attempts)").arg(m_esp->portName()).arg(tries));
-            displayMAC();
-            break;
-        }
-        QCoreApplication::processEvents();
+    if(m_esp->openPort()){
+        ui->logList->addEntry(tr("Connected to ESP8266 on %1").arg(m_esp->portName()));
+        displayMAC();
     }
 
     ui->openBtn->setEnabled(true);
@@ -282,10 +295,7 @@ void MainWindow::open()
     enableActions();
 
     if(!m_esp->isPortOpen()){
-        QString msg = "Failed to connect to ESP8266\n" \
-                      "Make sure that GPIO0 and GPIO15 are connected to low-level(ground), GPIO2 and CH_PD are connected\n"\
-                      "to high-level(power source) And reboot device(reconnect power or connect RST pin to ground for a second).";
-        ui->logList->addEntry(msg, LogList::Error);
+        ui->logList->addEntry(tr("Failed to connect to ESP8266"), LogList::Error);
     }
 }
 

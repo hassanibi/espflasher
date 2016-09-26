@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>845</width>
     <height>502</height>
    </rect>
   </property>
@@ -110,7 +110,7 @@ font-weight:bold;
 background-color:rgb(62, 152, 9);</string>
                 </property>
                 <property name="text">
-                 <string>Connect</string>
+                 <string>Open</string>
                 </property>
                 <property name="icon">
                  <iconset resource="resource.qrc">
@@ -675,7 +675,7 @@ font-weight:bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>845</width>
      <height>19</height>
     </rect>
    </property>
