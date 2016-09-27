@@ -68,3 +68,4 @@ contains (DEFINES, WITH_POPPLER_QT5) {
     else:unix: LIBS += -lpoppler-qt5
 }
 
+win32: RC_FILE = espflasher.rc

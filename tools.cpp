@@ -3,6 +3,7 @@
 #include <QProcess>
 #include <QFileInfo>
 #include <QStringList>
+#include <QDir>
 
 namespace ESPFlasher {
 

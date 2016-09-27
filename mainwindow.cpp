@@ -192,7 +192,7 @@ void MainWindow::fillComboBoxes()
         if(standardBaudRates.at(i) > 9599 && standardBaudRates.at(i) < 115201)
             ui->baudRate->addItem(QString::number(standardBaudRates.at(i)), standardBaudRates.at(i));
     }
-    ui->baudRate->setCurrentIndex(settings.value("baudRate", standardBaudRates.size() - 1).toInt());
+    ui->baudRate->setCurrentIndex(settings.value("baudRate", 0).toInt());
 
 
     ui->resetMode->addItem("-- Reset mode --", "");
